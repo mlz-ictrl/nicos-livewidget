@@ -58,6 +58,7 @@ class LWZoomer : public QwtPlotZoomer
     void setKeepAspect(bool val);
 
     virtual void zoom(const QwtDoubleRect &rect);
+    virtual void zoom(int up);
     virtual QwtText trackerText(const QwtDoublePoint &pos) const;
 };
 

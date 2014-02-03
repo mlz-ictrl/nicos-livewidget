@@ -71,6 +71,11 @@ void LWZoomer::zoom(const QwtDoubleRect &rect)
     QwtPlotZoomer::zoom(rect);
 }
 
+void LWZoomer::zoom(int up)
+{
+    QwtPlotZoomer::zoom(up);
+}
+
 QwtText LWZoomer::trackerText(const QwtDoublePoint &pos) const
 {
     QString str = "Pixel: ";
