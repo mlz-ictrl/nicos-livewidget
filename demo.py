@@ -25,12 +25,16 @@
 """Live widget demonstration."""
 
 import sys
+import glob
 
 from PyQt4.QtGui import QMainWindow, QApplication
 from PyQt4.uic import loadUi
 
+# Allow running this after "python setup.py build"
+sys.path.extend(glob.glob('build/lib.*'))
+
 # pylint: disable=F0401
-from livewidget import LWWidget, LWData
+from nicoslivewidget import LWWidget, LWData
 
 
 class MainWindow(QMainWindow):

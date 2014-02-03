@@ -21,7 +21,7 @@
 //
 // *****************************************************************************
 
-%Module livewidget 0
+%Module nicoslivewidget 0
 
 %Import QtGui/QtGuimod.sip
 %Import QtCore/QtCoremod.sip
@@ -31,7 +31,7 @@
 class LWData
 {
 %TypeHeaderCode
-#include "../lw_data.h"
+#include "lw_data.h"
 %End
   public:
     LWData(const LWData &other);
@@ -66,10 +66,11 @@ class LWData
 };
 
 
+
 class LWZoomer : QwtPlotZoomer
 {
 %TypeHeaderCode
-#include "../lw_widget.h"
+#include "lw_widget.h"
 %End
   public:
     LWZoomer(QwtPlotCanvas *canvas, const QwtPlotSpectrogram *spectro);
@@ -79,7 +80,7 @@ class LWZoomer : QwtPlotZoomer
 class LWPlot : QwtPlot
 {
 %TypeHeaderCode
-#include "../lw_plot.h"
+#include "lw_plot.h"
 %End
   public:
     LWPlot(QWidget *parent);
@@ -104,7 +105,7 @@ class LWPlot : QwtPlot
 class LWWidget : QWidget
 {
 %TypeHeaderCode
-#include "../lw_widget.h"
+#include "lw_widget.h"
 %End
   public:
     LWWidget(QWidget *parent = NULL);
@@ -147,7 +148,7 @@ class LWWidget : QWidget
 };
 
 %UnitCode
-#include "../lw_common.h"
+#include "lw_common.h"
 %End
 
 enum LWFiletype {
