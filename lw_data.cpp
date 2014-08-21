@@ -309,7 +309,9 @@ bool LWData::_readFits(const char *filename)
 
                 if (fits_read_img(file_pointer, TFLOAT, 1, total_pixel, &null_value,
                                   float_data, &any_null, &status)) {
-                    std::cerr << "Could not read image data from file for some reason!" << std::endl;
+                    char buf[80];
+                    fits_read_errmsg(buf);
+                    std::cerr << "Could not read image data from file: " << buf << std::endl;
                     free(data);
                     free(float_data);
                     fits_close_file(file_pointer, &status);
