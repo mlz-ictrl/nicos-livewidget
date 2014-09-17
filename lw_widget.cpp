@@ -62,7 +62,7 @@ void LWWidget::setInstrumentOption(const char *instr)
 {
     if (strcmp(instr, "toftof") == 0)
         m_instr = INSTR_TOFTOF;
-    else if (strcmp(instr, "antares") == 0)
+    else if (strcmp(instr, "imaging") == 0)
         m_instr = INSTR_IMAGING;
     else
         m_instr = INSTR_NONE;
