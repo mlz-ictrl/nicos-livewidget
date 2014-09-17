@@ -278,6 +278,7 @@ void LWWidget::setStandardColorMap(bool greyscale, bool cyclic)
     if (greyscale) {
         QwtLinearColorMap colorMap(Qt::black, Qt::white);
         m_plot->setColorMap(colorMap);
+        m_controls->grayscaleBox->setChecked(true);
     } else {
         if (cyclic) {
             // e.g. for phase (0..2pi) display
