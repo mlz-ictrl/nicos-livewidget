@@ -125,7 +125,7 @@ class LWWidget : QWidget
     bool controlsVisible() const;
 
     void setCustomRange(double lower, double upper);
-    void setStandardColorMap(bool greyscale, bool cyclic);
+    void setStandardColorMap(bool grayscale, bool cyclic);
     void setAxisLabels(const char *xaxis, const char *yaxis);
 
   protected:

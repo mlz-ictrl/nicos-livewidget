@@ -273,9 +273,9 @@ bool LWWidget::controlsVisible() const
     return m_controls->isVisible();
 }
 
-void LWWidget::setStandardColorMap(bool greyscale, bool cyclic)
+void LWWidget::setStandardColorMap(bool grayscale, bool cyclic)
 {
-    if (greyscale) {
+    if (grayscale) {
         QwtLinearColorMap colorMap(Qt::black, Qt::white);
         m_plot->setColorMap(colorMap);
         m_controls->grayscaleBox->setChecked(true);
