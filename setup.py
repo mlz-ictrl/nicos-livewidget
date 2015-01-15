@@ -3,10 +3,30 @@ import os
 from os import path
 import platform
 from sipdistutils import build_ext as sip_build_ext
-from PyQt4 import pyqtconfig
 
-config = pyqtconfig.Configuration()
-pyqt_sip_flags = config.pyqt_sip_flags.split()
+try:
+    from PyQt4 import pyqtconfig
+except ImportError:
+    from sipconfig import Configuration
+
+    def query_var(varname):
+        p = os.popen('qmake -query ' + varname, 'r')
+        return p.read().strip()
+    # new-style configured PyQt4, no pyqtconfig module
+    from PyQt4.QtCore import PYQT_CONFIGURATION
+    pyqt_sip_flags = PYQT_CONFIGURATION['sip_flags'].split()
+    pyqt_sip_dir = path.join(Configuration().default_sip_dir, 'PyQt4')
+    moc_bin = path.join(query_var('QT_INSTALL_BINS'), 'moc')
+    qt_inc_dir = query_var('QT_INSTALL_HEADERS')
+    qt_lib_dir = query_var('QT_INSTALL_LIBS')
+else:
+    config = pyqtconfig.Configuration()
+    pyqt_sip_flags = config.pyqt_sip_flags.split()
+    moc_bin = config.build_macros()['MOC']
+    pyqt_sip_dir = config.pyqt_sip_dir
+    qt_inc_dir = config.qt_inc_dir
+    qt_lib_dir = config.qt_lib_dir
+
 pyqwt_sip_flags = ['-t', 'Qwt_5_2_0']
 
 
@@ -21,12 +41,11 @@ class moc_build_ext(sip_build_ext):
         self.sip_opts = self.sip_opts + pyqt_sip_flags + pyqwt_sip_flags
 
     def _sip_sipfiles_dir(self):
-        return pyqtconfig.Configuration().pyqt_sip_dir
+        return pyqt_sip_dir
 
     def swig_sources(self, sources, extension=None):
         # Create .moc files from headers
         ret = sip_build_ext.swig_sources(self, sources, extension)
-        moc_bin = config.build_macros()['MOC']
         for source in sources:
             if not source.endswith('.cpp'):
                 continue
@@ -61,10 +80,10 @@ else:
     extra_include_dirs = ["/usr/include/qwt5", "/usr/include/qwt"]
     extra_libs = ["qwt", "cfitsio"]
 
-extra_include_dirs.extend(path.join(config.qt_inc_dir, subdir)
+extra_include_dirs.extend(path.join(qt_inc_dir, subdir)
                           for subdir in ['', 'QtCore', 'QtGui'])
 extra_libs.extend(['QtCore', 'QtGui'])
-extra_lib_dirs = [config.qt_lib_dir]
+extra_lib_dirs = [qt_lib_dir]
 
 sources = [cppfile for cppfile in os.listdir('.')
            if cppfile.startswith('lw_') and cppfile.endswith('.cpp')
