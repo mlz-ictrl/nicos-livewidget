@@ -68,7 +68,7 @@ if dist == 'openSUSE':
                           "/usr/include/cfitsio"]
     extra_libs = ["qwt", "cfitsio"]
 elif dist in ['Ubuntu', 'LinuxMint']:
-    extra_include_dirs = ["/usr/include/qwt-qt4", "/usr/include/qwt"]
+    extra_include_dirs = ["/usr/include/qwt-qt4"]
     extra_libs = ["qwt-qt4", "cfitsio"]
 elif dist == 'CentOS':
     extra_include_dirs = ["/usr/local/qwt5/include"]

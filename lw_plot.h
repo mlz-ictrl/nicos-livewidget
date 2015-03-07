@@ -99,6 +99,5 @@ class LWPlot : public QwtPlot
 
   public slots:
     void printPlot();
-    void savePlot();
 };
 #endif

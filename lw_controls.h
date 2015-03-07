@@ -69,9 +69,7 @@ class LWControls : public QWidget
     LWImageOperations m_operation;
 
     float m_normalized;
-    float m_normalizevalue;
     float m_darkfieldsubtracted;
-    float m_darkfieldvalue;
     float m_despeckled;
     float m_despecklevalue;
 
@@ -92,9 +90,7 @@ class LWControls : public QWidget
     QCheckBox *grayscaleBox;
     QCheckBox *cyclicBox;
     QCheckBox *normalizeBox;
-    QLineEdit *normalizeValue;
     QCheckBox *darkfieldBox;
-    QLineEdit *darkfieldValue;
     QCheckBox *despeckleBox;
     QLabel *despeckleValueLabel;
     QSpinBox *despeckleValue;
@@ -148,8 +144,6 @@ class LWControls : public QWidget
     void updateMinMax();
     void updateBrightness(int);
     void updateContrast(int);
-    void updateNormalizeValue();
-    void updateDarkfieldValue();
     void updateDespeckleValue(int value);
     void updateFilterSelector(int comboBoxValue);
     void updateOperationSelector(int comboBoxValue);

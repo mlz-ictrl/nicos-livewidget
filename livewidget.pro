@@ -1,6 +1,6 @@
 CONFIG += qt debug
 
-INCLUDEPATH += . /usr/include/qwt5 /usr/include/qwt-qt4 /usr/include/cfitsio
+INCLUDEPATH += . /usr/include/qwt5 /usr/include/qwt-qt4 /usr/include/qwt /usr/include/cfitsio /usr/include/cfitsio0
 
 LIBS += -lqwt-qt4 -lcfitsio
 
@@ -25,4 +25,3 @@ SOURCES += \
     lw_profile.cpp \
     lw_main.cpp \
     lw_imageproc.cpp
-

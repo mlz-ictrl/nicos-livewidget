@@ -230,54 +230,10 @@ void LWPlot::setColorMap(QwtColorMap &map)
 
 void LWPlot::printPlot()
 {
-    /* QPrinter printer;
-
+    QPrinter printer;
     printer.setOrientation(QPrinter::Landscape);
-    printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setOutputFileName(filename);
-    printer.setPageSize(QPrinter::A4);
-
     QPrintDialog dialog(&printer);
     if (dialog.exec())
-        print(printer); */
+        print(printer);
 }
 
-void LWPlot::savePlot()
-{
-    /* qPix = QPixmap::grabWidget(m_spectro);
-    if(qPix.isNull()){
-        qDebug("Failed to capture the plot for saving");
-        return;
-    }
-    QString types(	"JPEG file (*.jpeg);;"	// Set up the possible graphics formats
-                            "PNG file (*.png);;"
-                            "BMP file (*.bmp)");
-    QString filter;  // Type of filter
-    QString jpgExt = ".jpg", pngExt=".png", bmpExt=".bmp"; // Suffix for the files
-    QString suggestedName = restorePath().replace("flxhst","jpg");
-    QString fn = QFileDialog::getSaveFileName(viewParent(), tr("Save Image..."), suggestedName, types, &filter);
-
-    if ( !fn.isEmpty() ) {	// If filename is not a null
-        if (fn.contains(jpgExt)) {	// Remove file extension is already there
-            fn.remove(jpgExt);
-        }
-        else if (fn.contains(pngExt)) {
-            fn.remove(pngExt);
-        }
-        else if (fn.contains(bmpExt)) {
-            fn.remove(bmpExt);
-        }
-        if (filter.contains(jpgExt)) {
-            fn+=jpgExt;
-            qPix.save( fn, "JPEG" );
-        }
-        else if (filter.contains(pngExt)) {
-            fn+=pngExt;
-            qPix.save( fn, "PNG" );
-        }
-        else if (filter.contains(bmpExt)) {
-            fn+=bmpExt;
-            qPix.save( fn, "BMP" );
-        }
-    } */
-}
