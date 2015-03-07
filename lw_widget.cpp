@@ -19,14 +19,14 @@
 // Module authors:
 //   Tobias Weber <tobias.weber@frm2.tum.de>
 //   Georg Brandl <georg.brandl@frm2.tum.de>
+//   Philipp Schmakat <philipp.schmakat@frm2.tum.de>
 //
 // *****************************************************************************
 
 #include <iostream>
 
-#include <QLayout>
-
 #include "lw_widget.h"
+
 
 /** LWWidget ******************************************************************/
 
@@ -90,25 +90,41 @@ void LWWidget::resizeEvent(QResizeEvent *event)
 void LWWidget::setData(LWData *data)
 {
     bool prev_log10 = false;
-    /*
     bool prev_despeckled = false;
-    bool prev_darkimagesubtracted = false;
+    bool prev_darkfieldsubtracted = false;
     bool prev_normalized = false;
-    */
+    float prev_despecklevalue = 0;
+    QString prev_normalizefile;
+    QString prev_darkfieldfile;
 
     double prev_min = -1, prev_max = -1;
     if (m_data) {
         prev_log10 = m_data->isLog10();
+        prev_despeckled = m_data->isDespeckled();
+        prev_darkfieldsubtracted = m_data->isDarkfieldSubtracted();
+        prev_normalized = m_data->isNormalized();
+        prev_despecklevalue = m_data->getDespeckleValue();
+        prev_darkfieldfile = m_data->getDarkfieldFile();
+        prev_normalizefile = m_data->getNormalizeFile();
+
         if (m_data->hasCustomRange()) {
             prev_min = m_data->customRangeMin();
             prev_max = m_data->customRangeMax();
         }
+
         unload();
     }
 
     // apply image operations here
-    // ...
+
     m_data = data;
+
+    m_data->setDespeckleValue(prev_despecklevalue);
+    m_data->setDarkfieldFile(prev_darkfieldfile);
+    m_data->setNormalizeFile(prev_normalizefile);
+    m_data->setDespeckled(prev_despeckled);
+    m_data->setDarkfieldSubtracted(prev_darkfieldsubtracted);
+    m_data->setNormalized(prev_normalized);
 
     m_data->setLog10(prev_log10);
     if (prev_min != -1 || prev_max != -1)
@@ -172,6 +188,14 @@ bool LWWidget::isNormalized() const
     return false;
 }
 
+void LWWidget::setNormalizeFile(QString value)
+{
+    if (m_data) {
+        m_data->setNormalizeFile(value);
+        updateGraph(true);
+    }
+}
+
 void LWWidget::setDarkfieldSubtracted(bool val)
 {
     if (m_data) {
@@ -186,6 +210,14 @@ bool LWWidget::isDarkfieldSubtracted() const
         return m_data->isDarkfieldSubtracted();
     }
     return false;
+}
+
+void LWWidget::setDarkfieldFile(QString value)
+{
+    if (m_data) {
+        m_data->setDarkfieldFile(value);
+        updateGraph(true);
+    }
 }
 
 void LWWidget::setDespeckled(bool val)

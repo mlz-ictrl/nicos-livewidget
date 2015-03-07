@@ -31,8 +31,9 @@
 
 #include "lw_common.h"
 
+
 // undefine to remove timing console messages
-#define CLOCKING
+// #define CLOCKING
 
 // data type used for single pixel count values
 typedef uint32_t data_t;
@@ -67,6 +68,8 @@ class LWData
     LWImageFilters m_filter;
     LWImageOperations m_operation;
     float m_despecklevalue;
+    QString m_darkfieldfile;
+    QString m_normalizefile;
 
     data_t data(int x, int y, int z) const;
     int size() const { return m_width * m_height * m_depth; }
@@ -96,12 +99,18 @@ class LWData
     virtual void setLog10(bool val);
 
     bool isNormalized() const { return m_normalized; }
+    QString getNormalizeFile() const { return m_normalizefile; }
     virtual void setNormalized(bool val);
-    bool isDarkfieldSubtracted() const { return m_darkfieldsubtracted; }
-    virtual void setDarkfieldSubtracted(bool val);
-    bool isDespeckled() const { return m_despeckled; }
-    virtual void setDespeckled(bool val);
+    virtual void setNormalizeFile(QString val);
 
+    bool isDarkfieldSubtracted() const { return m_darkfieldsubtracted; }
+    QString getDarkfieldFile() const { return m_darkfieldfile; }
+    virtual void setDarkfieldSubtracted(bool val);
+    virtual void setDarkfieldFile(QString val);
+
+    bool isDespeckled() const { return m_despeckled; }
+    int getDespeckleValue() const { return m_despecklevalue; }
+    virtual void setDespeckled(bool val);
     virtual void setDespeckleValue(float value);
 
     LWImageFilters isImageFilter() const { return m_filter; }
@@ -111,6 +120,8 @@ class LWData
     virtual void setImageOperation(LWImageOperations which);
 
     void saveAsFitsImage(float *data, char *fits_filename);
+    std::string getStringFromFitsHeader(const char *filename, const char *headerEntry);
+    float getFloatFromFitsHeader(const char *filename, const char *headerEntry) ;
 
     bool hasCustomRange() const { return m_custom_range; }
     double customRangeMin() const;

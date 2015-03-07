@@ -48,12 +48,11 @@ class MainWindow(QMainWindow):
         self.plotLayout.addWidget(self.livewidget)
         self.livewidget.setAxisLabels('detectors', 'time channels')
 
-        #x = open("test1.fits").read()[5760:-1664]
-        #data = LWData(2048, 2048, 1, ">f4", x)
-        x = open("testdata.npy").read()[80:]
-        data = LWData(1024, 1024, 1, ">i4", x)
+        x = open("demo.fits").read()[5760:-1664]
+        data = LWData(2048, 2048, 1, ">f4", x)
         self.livewidget.setData(data)
         #self.livewidget.setLog10(True)
+        self.livewidget.setKeepAspect(True)
 
     def setColormap(self, on):
         self.livewidget.setStandardColorMap(self.grayscaleBox.isChecked(),

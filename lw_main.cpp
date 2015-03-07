@@ -31,6 +31,7 @@
 
 #include "lw_widget.h"
 
+
 int main(int argc, char *argv[])
 {
      QApplication app(argc, argv);
@@ -40,20 +41,21 @@ int main(int argc, char *argv[])
      LWData *raw_data;
 
      if (argc == 1)
-         raw_data = new LWData("data/raw/hd_000.000.fits");
+         raw_data = new LWData("demo.fits");
      else
          raw_data = new LWData(argv[1]);
 
      widget.setData(raw_data);
      widget.setControls((LWCtrl)(ShowGrid | Logscale | Grayscale | Filelist |
-                                 Normalize | Darkfield | Despeckle | //ImageOperations |
-                                 CreateProfile | Histogram | MinimumMaximum));
+                                 Normalize | Darkfield | Despeckle |
+                                 // ImageOperations | CreateProfile |
+                                 Histogram | MinimumMaximum));
      widget.setKeepAspect(true);
      widget.setStandardColorMap(true,false);
 
      mainWin.setCentralWidget(&widget);
-     mainWin.setMinimumHeight(800);
-     mainWin.setMinimumWidth(1400);
+     mainWin.setMinimumHeight(600);
+     mainWin.setMinimumWidth(1200);
      mainWin.show();
 
      return app.exec();

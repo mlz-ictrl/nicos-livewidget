@@ -32,6 +32,8 @@
 
 #include <fitsio.h>
 
+#include <QStringList>
+
 #include "lw_data.h"
 #include "lw_imageproc.h"
 #include "lw_common.h"
@@ -42,7 +44,7 @@ static clock_t clock_start, clock_stop;
 #define CLOCK_STOP(action) clock_stop  = clock(); \
                            std::cout << (action) << ": " << \
                                (1000 * (float)(clock_stop-clock_start)/CLOCKS_PER_SEC) \
-                               << "ms" << std::endl
+                               << " ms" << std::endl
 #else
 #define CLOCK_START()
 #define CLOCK_STOP(action)
@@ -211,10 +213,12 @@ LWData::LWData(const char* filename)
       m_despeckled(0),
       m_filter(NoImageFilter),
       m_operation(NoImageOperation),
-      m_despecklevalue(3000)
+      m_despecklevalue(100),
+      m_darkfieldfile(""),
+      m_normalizefile("")
 {
     if (! _readFits(filename)) {
-            _dummyInit();
+        _dummyInit();
     }
 }
 
@@ -269,70 +273,65 @@ bool LWData::_readFits(const char *filename)
     int total_pixel;
     long dimensions[3];
 
-    float *float_data;
-    data_t *data;
+    float *float_data = NULL;
+    data_t *data = NULL;
 
-    if (!fits_open_file(&file_pointer, filename, READONLY, &status)) {
-        if (!fits_get_img_param(file_pointer, max_dimensions, &bitpix,
-                                &num_dimensions, dimensions, &status)) {
-            if (fits_get_hdu_type(file_pointer, &hdutype, &status) ||
-                hdutype != IMAGE_HDU || !(num_dimensions == 2 || num_dimensions == 3)) {
-                std::cerr << "This .fits file does not contain valid image data!" << std::endl;
-                fits_close_file(file_pointer, &status);
-                return false;
-            } else {
-                m_width  = (int) dimensions[0];
-                m_height = (int) dimensions[1];
-                m_depth  = 1;
-
-                total_pixel = m_height * m_width;
-
-                float_data = (float *) malloc(total_pixel * sizeof(float));  // 32bit float values
-
-                if (!float_data) {
-                    std::cerr << "Memory allocation for data arrays failed!" << std::endl;
-                    fits_close_file(file_pointer, &status);
-                    return false;
-                }
-
-                data = (data_t *) malloc(total_pixel * sizeof(data_t));  // 32bit integer values
-
-                if (!data) {
-                    std::cerr << "Memory allocation for data arrays failed!" << std::endl;
-                    free(float_data);
-                    fits_close_file(file_pointer, &status);
-                    return false;
-                }
-
-                if (fits_read_img(file_pointer, TFLOAT, 1, total_pixel, &null_value,
-                                  float_data, &any_null, &status)) {
-                    char buf[80];
-                    fits_read_errmsg(buf);
-                    std::cerr << "Could not read image data from file: " << buf << std::endl;
-                    free(data);
-                    free(float_data);
-                    fits_close_file(file_pointer, &status);
-                    return false;
-                }
-
-                fits_close_file(file_pointer, &status);
-
-                for (int y = 0; y < m_height; ++y)
-                    for (int x = 0; x < m_width; ++x)
-                        data[x + y*m_width] = (data_t)float_data[x + y*m_width];
-            }
-        }
-    } else {
+    if (fits_open_file(&file_pointer, filename, READONLY, &status)) {
         std::cerr << "Could not open file " << filename << std::endl;
         return false;
     }
+    if (fits_get_img_param(file_pointer, max_dimensions, &bitpix,
+                            &num_dimensions, dimensions, &status)) {
+        std::cerr << "Could not get image params from " << filename << std::endl;
+        fits_close_file(file_pointer, &status);
+        return false;
+    }
+    if (fits_get_hdu_type(file_pointer, &hdutype, &status) ||
+        hdutype != IMAGE_HDU || !(num_dimensions == 2 || num_dimensions == 3)) {
+        std::cerr << "This .fits file does not contain valid image data!" << std::endl;
+        fits_close_file(file_pointer, &status);
+        return false;
+    }
+
+    m_width  = (int) dimensions[0];
+    m_height = (int) dimensions[1];
+    m_depth  = 1;
+
+    total_pixel = m_height * m_width;
+
+    float_data = (float *) malloc(total_pixel * sizeof(float));  // 32bit float values
+    data = (data_t *) malloc(total_pixel * sizeof(data_t));  // 32bit integer values
+
+    if (!float_data || !data) {
+        std::cerr << "Memory allocation for data arrays failed!" << std::endl;
+        fits_close_file(file_pointer, &status);
+        if (float_data)
+            free(float_data);
+        return false;
+    }
+
+    if (fits_read_img(file_pointer, TFLOAT, 1, total_pixel, &null_value,
+                      float_data, &any_null, &status)) {
+        char buf[80];
+        fits_read_errmsg(buf);
+        std::cerr << "Could not read image data from file: " << buf << std::endl;
+        fits_close_file(file_pointer, &status);
+        free(float_data);
+        free(data);
+        return false;
+    }
+
+    fits_close_file(file_pointer, &status);
+
+    for (int y = 0; y < m_height; ++y)
+        for (int x = 0; x < m_width; ++x)
+            data[x + y*m_width] = (data_t)float_data[x + y*m_width];
 
     initFromBuffer((char *)data);
-    updateRange();
 
     free(float_data);
     free(data);
-
+    updateRange();
     return true;
 }
 
@@ -475,6 +474,28 @@ void LWData::setDespeckled(bool val)
     updateRange();
 }
 
+void LWData::setDespeckleValue(float value)
+{
+    if (m_despecklevalue == value)
+        return;
+    m_despecklevalue = value;
+
+    memcpy(m_data, m_clone, sizeof(data_t) * size());
+
+    float *pdata = (float *)malloc(size() * sizeof(float));
+    for (int i = 0; i < size(); ++i)
+        pdata[i] = (float)m_data[i];
+
+    LWImageProc::despeckleFilter(pdata, m_despecklevalue, m_width, m_height);
+
+    for (int i = 0; i < size(); ++i)
+        m_data[i] = (data_t)pdata[i];
+
+    free(pdata);
+
+    updateRange();
+}
+
 void LWData::setNormalized(bool val)
 {
     if (m_normalized == val)
@@ -482,27 +503,51 @@ void LWData::setNormalized(bool val)
     m_normalized = val;
 
     if (m_normalized) {
-        float *pdata = (float *)malloc(size() * sizeof(float));
+        float *data = (float *)malloc(size() * sizeof(float));
         for (int i = 0; i < size(); ++i)
-            pdata[i] = (float)m_data[i];
+            data[i] = (float)m_data[i];
 
         CLOCK_START();
-        // XXX file name shouldn't be hardcoded :)
-        LWData openbeam("data/openbeam/ob_hd_1.fits");
-        float *sdata = (float *)malloc(size() * sizeof(float));
+        LWData openbeam(m_normalizefile.toStdString().c_str());
+        float *ob_data = (float *)malloc(size() * sizeof(float));
         for (int i = 0; i < size(); ++i)
-            sdata[i] = openbeam.buffer()[i];
-        CLOCK_STOP("load openbeam image");
+            ob_data[i] = openbeam.buffer()[i];
+        CLOCK_STOP("loaded openbeam image");
 
         CLOCK_START();
-        LWImageProc::pixelwiseDivideImages(pdata, sdata, m_width, m_height);
+        LWData darkfield(m_darkfieldfile.toStdString().c_str());
+        float *di_data = (float *)malloc(size() * sizeof(float));
+        for (int i = 0; i < size(); ++i)
+            di_data[i] = darkfield.buffer()[i];
+        CLOCK_STOP("loaded dark image");
+
+        if (m_despeckled) {
+            CLOCK_START();
+            LWImageProc::despeckleFilter(di_data, m_despecklevalue, m_width, m_height);
+            LWImageProc::despeckleFilter(ob_data, m_despecklevalue, m_width, m_height);
+            LWImageProc::despeckleFilter(data, m_despecklevalue, m_width, m_height);
+            CLOCK_STOP("removed gamma spots");
+        }
+
+        CLOCK_START();
+        LWImageProc::pixelwiseSubtractImages(ob_data, di_data, m_width, m_height);
+        CLOCK_STOP("pixelwise subtract dark image from openbeam image");
+
+        CLOCK_START();
+        LWImageProc::pixelwiseSubtractImages(data, di_data, m_width, m_height);
+        CLOCK_STOP("pixelwise subtract dark image from data");
+
+        CLOCK_START();
+        LWImageProc::pixelwiseDivideImages(data, ob_data, m_width, m_height);
         CLOCK_STOP("pixelwise divide images");
 
         for (int i = 0; i < size(); ++i)
-            m_data[i] = (data_t)pdata[i];
+            m_data[i] = (data_t)data[i];
 
-        free(pdata);
-        free(sdata);
+        free(data);
+        free(ob_data);
+        free(di_data);
+
         updateRange();
     } else {
         CLOCK_START();
@@ -514,6 +559,15 @@ void LWData::setNormalized(bool val)
         CLOCK_STOP("updateRange() function");
     }
 }
+
+
+void LWData::setNormalizeFile(QString val)
+{
+    if (m_normalizefile == val)
+        return;
+    m_normalizefile = val;
+}
+
 
 void LWData::setDarkfieldSubtracted(bool val)
 {
@@ -527,8 +581,7 @@ void LWData::setDarkfieldSubtracted(bool val)
             pdata[i] = (float)m_data[i];
 
         CLOCK_START();
-        // XXX file name shouldn't be hardcoded :)
-        LWData darkfield("data/darkimage/di_hd_1.fits");
+        LWData darkfield(m_darkfieldfile.toStdString().c_str());
         float *sdata = (float *)malloc(size() * sizeof(float));
         for (int i = 0; i < size(); ++i)
             sdata[i] = darkfield.buffer()[i];
@@ -555,26 +608,11 @@ void LWData::setDarkfieldSubtracted(bool val)
     }
 }
 
-void LWData::setDespeckleValue(float value)
+void LWData::setDarkfieldFile(QString val)
 {
-    if (m_despecklevalue == value)
+    if (m_darkfieldfile == val)
         return;
-    m_despecklevalue = value;
-
-    memcpy(m_data, m_clone, sizeof(data_t) * size());
-
-    float *pdata = (float *)malloc(size() * sizeof(float));
-    for (int i = 0; i < size(); ++i)
-        pdata[i] = (float)m_data[i];
-
-    LWImageProc::despeckleFilter(pdata, m_despecklevalue, m_width, m_height);
-
-    for (int i = 0; i < size(); ++i)
-        m_data[i] = (data_t)pdata[i];
-
-    free(pdata);
-
-    updateRange();
+    m_darkfieldfile = val;
 }
 
 void LWData::setImageFilter(LWImageFilters which)
@@ -586,7 +624,7 @@ void LWData::setImageFilter(LWImageFilters which)
     if (m_filter == NoImageFilter) {
         memcpy(m_data, m_clone, sizeof(data_t) * size());
     } else {
-        float *pdata = (float*)malloc(size() * sizeof(float));
+        float *pdata = (float *)malloc(size() * sizeof(float));
 
         for (int i=0; i<size(); ++i)
             pdata[i] = (float)m_data[i];
@@ -617,36 +655,14 @@ void LWData::setImageOperation(LWImageOperations which)
         memcpy(m_data, m_clone, sizeof(data_t) * size());
     } else {
         float *pdata = (float *)malloc(size() * sizeof(float));
-        float *sdata = (float *)malloc(size() * sizeof(float));
 
         for (int i = 0; i < size(); ++i)
             pdata[i] = (float)m_data[i];
 
         if (m_operation == StackAverage) {
             str_vec myList;
-            myList.push_back("data/test1.fits");
-            myList.push_back("data/test2.fits");
-            myList.push_back("data/raw/hd_000.000.fits");
 
             LWImageProc::pixelwiseAverage(pdata, myList, m_width, m_height);
-        } else if (m_operation == OpenBeamNormalization) {
-
-            // if not already existing: create average
-            // of all openbeam images in the corresponding directory
-
-            LWData openbeam("data/openbeam/ob_hd_1.fits");
-            for (int i = 0; i < size(); ++i)
-                sdata[i] = openbeam.buffer()[i];
-            LWImageProc::pixelwiseDivideImages(pdata, sdata, m_width, m_height);
-        } else if (m_operation == DarkImageSubtraction) {
-
-            // if not already existing: create average
-            // of all darkfield images in the corresponding directory
-
-            LWData darkimage("data/darkimage/di_hd_1.fits");
-            for (int i = 0; i < size(); ++i)
-                sdata[i] = darkimage.buffer()[i];
-            LWImageProc::pixelwiseSubtractImages(pdata, sdata, m_width, m_height);
         }
 
         for (int i = 0; i < size(); ++i)
@@ -726,4 +742,103 @@ void LWData::saveAsFitsImage(float *data, char *fits_filename)
 
     if (status)
         fits_report_error(stderr, status);   // print any cfitsio error message
+}
+
+
+
+float LWData::getFloatFromFitsHeader(const char *filename, const char *headerEntry)
+{
+    fitsfile *file_pointer;    // CFITSIO file pointer, defined in fitsio.h
+    int status = 0;            // CFITSIO status, must be initialized to zero
+
+    char value[FLEN_CARD];
+
+    if (!fits_open_file(&file_pointer, filename, READONLY, &status))
+    {
+        if (!fits_read_card(file_pointer, headerEntry, value, &status))
+        {
+            fits_close_file(file_pointer, &status);
+
+            if (status)
+                fits_report_error(stderr, status);   // print any cfitsio error message
+
+            std::cout << value << std::endl;
+            QString val = value;
+            QStringList line = val.split(" ");
+            float v;
+
+            if (line.at(0).toStdString() != "HIERARCH")
+            {
+                line = val.split("=");
+                v = line.at(1).toFloat();
+                std::cout << line.at(1).toFloat() << std::endl;
+            }
+            else
+            {
+                line = val.split("'");
+                v = line.at(1).split(" ")[0].toFloat();
+                std::cout << line.at(1).split(" ")[0].toFloat() << std::endl;
+            }
+
+            return v;
+        }
+        else
+        {
+            std::cout << "Could not find header keyword: " << headerEntry << std::endl;
+            return 0.0;
+        }
+    }
+    else
+    {
+        std::cerr << "Could not open file " << filename << std::endl;
+        return 0.0;
+    }
+}
+
+std::string LWData::getStringFromFitsHeader(const char *filename, const char *headerEntry)
+{
+    fitsfile *file_pointer;    // CFITSIO file pointer, defined in fitsio.h
+    int status = 0;            // CFITSIO status, must be initialized to zero
+
+    char value[FLEN_CARD];
+
+    if (!fits_open_file(&file_pointer, filename, READONLY, &status))
+    {
+        if (!fits_read_card(file_pointer, headerEntry, value, &status))
+        {
+            fits_close_file(file_pointer, &status);
+
+            if (status)
+                fits_report_error(stderr, status);   // print any cfitsio error message
+
+            std::cout << value << std::endl;
+            QString val = value;
+            QStringList line = val.split(" ");
+            std::string v;
+
+            if (line.at(0).toStdString() == "HIERARCH")
+            {
+                line = val.split("'");
+                v = line.at(1).split(" ")[0].toStdString();
+                std::cout << v << std::endl;
+            }
+            else
+            {
+                v = "+";
+                std::cout << "default polarity is positive" << std::endl;
+            }
+
+            return v;
+        }
+        else
+        {
+            std::cout << "Could not find header keyword: " << headerEntry << std::endl;
+            return " ";
+        }
+    }
+    else
+    {
+        std::cerr << "Could not open file " << filename << std::endl;
+        return " ";
+    }
 }

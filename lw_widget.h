@@ -94,6 +94,8 @@ class LWWidget : public QWidget
     void setImageFilter(LWImageFilters which);
     void setImageOperation(LWImageOperations which);
     void setDespeckleValue(float value);
+    void setNormalizeFile(QString value);
+    void setDarkfieldFile(QString value);
     void setKeepAspect(bool val);
     void setNormalized(bool val);
     void setDarkfieldSubtracted(bool val);

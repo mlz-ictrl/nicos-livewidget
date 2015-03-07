@@ -22,6 +22,8 @@
 //
 // *****************************************************************************
 
+#include <QFileDialog>
+
 #include "lw_plot.h"
 
 
@@ -231,9 +233,47 @@ void LWPlot::setColorMap(QwtColorMap &map)
 void LWPlot::printPlot()
 {
     QPrinter printer;
+
     printer.setOrientation(QPrinter::Landscape);
+    /*
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(filename);
+    */
+    printer.setPageSize(QPrinter::A4);
+
     QPrintDialog dialog(&printer);
     if (dialog.exec())
         print(printer);
 }
 
+void LWPlot::savePlot()
+{
+    QPixmap qPix = QPixmap::grabWidget(this);
+    if (qPix.isNull()){
+        qDebug("Failed to capture the plot for saving");
+        return;
+    }
+    QString types("JPEG file (*.jpeg);;"	// Set up the possible graphics formats
+                  "PNG file (*.png)");
+    QString filter;  // Type of filter
+    QString jpgExt = ".jpg", pngExt = ".png";   // Suffix for the files
+    QString fn = QFileDialog::getSaveFileName(this, "Save Image...",
+                                              QString(), types, &filter);
+
+    if (!fn.isEmpty()) {	// If filename is not a null
+        if (fn.contains(jpgExt)) {	// Remove file extension is already there
+            fn.remove(jpgExt);
+        }
+        else if (fn.contains(pngExt)) {
+            fn.remove(pngExt);
+        }
+        if (filter.contains(jpgExt)) {
+            fn += jpgExt;
+            qPix.save(fn, "JPEG");
+        }
+        else if (filter.contains(pngExt)) {
+            fn += pngExt;
+            qPix.save(fn, "PNG");
+        }
+    }
+}

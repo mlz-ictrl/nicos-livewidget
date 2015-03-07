@@ -69,29 +69,34 @@ void LWControls::setupUi()
 
     // ANTARES/imaging specific controls
 
-    darkfieldBox = new QCheckBox("subtract darkfield image", this);
-    mainLayout->addWidget(darkfieldBox);
-
-    normalizeBox = new QCheckBox("normalize to openbeam image", this);
-    mainLayout->addWidget(normalizeBox);
-
-    despeckleBox = new QCheckBox("remove gamma spots", this);
-    mainLayout->addWidget(despeckleBox);
+    hLayout = new QHBoxLayout();
+    darkfieldBox = new QCheckBox("dark image", this);
+    hLayout->addWidget(darkfieldBox);
+    darkfieldFile = new QLineEdit("/data/FRM-II/current/currentdarkimage.fits", this);
+    darkfieldFile->setEnabled(false);
+    hLayout->addWidget(darkfieldFile);
+    mainLayout->addLayout(hLayout);
 
     hLayout = new QHBoxLayout();
-    despeckleValueLabel = new QLabel("despeckle value:", this);
-    hLayout->addWidget(despeckleValueLabel);
+    normalizeBox = new QCheckBox("open beam", this);
+    hLayout->addWidget(normalizeBox);
+    normalizedFile = new QLineEdit("/data/FRM-II/current/currentopenbeamimage.fits", this);
+    normalizedFile->setEnabled(false);
+    hLayout->addWidget(normalizedFile);
+    mainLayout->addLayout(hLayout);
+
+    hLayout = new QHBoxLayout();
+    despeckleBox = new QCheckBox("gamma spot filter threshold", this);
+    hLayout->addWidget(despeckleBox);
     despeckleValue = new QSpinBox(this);
     despeckleValue->setRange(1, 65536);
     despeckleValue->setEnabled(false);
-    despeckleValue->setValue(3000);
+    despeckleValue->setValue(100);
     hLayout->addWidget(despeckleValue);
     mainLayout->addLayout(hLayout);
 
     operationSelector = new QComboBox();
     operationSelector->addItem("no operation selected");
-    operationSelector->addItem("normalize to openbeam image");
-    operationSelector->addItem("subtract darkimage");
     operationSelector->addItem("stack average");
     mainLayout->addWidget(operationSelector);
 
@@ -262,11 +267,12 @@ void LWControls::setupUi()
 
     // list of "previous" files -- this needs to be cleaned up
 
+    hLayout = new QHBoxLayout();
     filelistLabel = new QLabel("directory", this);
-    mainLayout->addWidget(filelistLabel);
-
-    filelistDirectory = new QLineEdit(".", this);
+    hLayout->addWidget(filelistLabel);
+    filelistDirectory = new QLineEdit("/data/FRM-II/current", this);
     mainLayout->addWidget(filelistDirectory);
+    mainLayout->addLayout(hLayout);
 
     filelistView = new QListView(this);
     filelistModel = new QStandardItemModel(this);
@@ -291,12 +297,16 @@ void LWControls::setupUi()
                      this, SLOT(setColorMap()));
     QObject::connect(normalizeBox, SIGNAL(toggled(bool)),
                      this, SLOT(setNormalize(bool)));
+    QObject::connect(normalizedFile, SIGNAL(returnPressed()),
+                     this, SLOT(updateNormalizedFile()));
     QObject::connect(darkfieldBox, SIGNAL(toggled(bool)),
                      this, SLOT(setDarkfieldSubtract(bool)));
+    QObject::connect(darkfieldFile, SIGNAL(returnPressed()),
+                     this, SLOT(updateDarkfieldFile()));
     QObject::connect(despeckleBox, SIGNAL(toggled(bool)),
                      this, SLOT(setDespeckle(bool)));
     QObject::connect(despeckleValue, SIGNAL(valueChanged(int)),
-                     this, SLOT(updateDespeckleValue(int)));
+                     this, SLOT(updateDespeckleValue()));
     QObject::connect(operationSelector, SIGNAL(activated(int)),
                      this, SLOT(updateOperationSelector(int)));
     QObject::connect(filterSelector, SIGNAL(activated(int)),
@@ -474,16 +484,33 @@ void LWControls::setLogscale(bool on)
 
 void LWControls::setNormalize(bool on)
 {
+    if (m_widget->isDarkfieldSubtracted() && on) {
+        m_widget->setDarkfieldSubtracted(false);
+        darkfieldFile->setEnabled(false);
+        darkfieldBox->setCheckState(Qt::Unchecked);
+    } else {
+        updateNormalizedFile();
+    }
     m_widget->setNormalized(on);
+    normalizedFile->setEnabled(on);
 }
 
 void LWControls::setDarkfieldSubtract(bool on)
 {
+    if (m_widget->isNormalized() && on) {
+        m_widget->setNormalized(false);
+        normalizedFile->setEnabled(false);
+        normalizeBox->setCheckState(Qt::Unchecked);
+    } else {
+        updateDarkfieldFile();
+    }
     m_widget->setDarkfieldSubtracted(on);
+    darkfieldFile->setEnabled(on);
 }
 
 void LWControls::setDespeckle(bool on)
 {
+    updateDespeckleValue();
     m_widget->setDespeckled(on);
     despeckleValue->setEnabled(on);
 }
@@ -615,13 +642,11 @@ void LWControls::updateProfBins(int b)
                            profileWidth->value(), b, m_prof_type);
 }
 
-
 void LWControls::updateOperationSelector(int comboBoxValue)
 {
     if (m_widget->isImageOperation() != LWImageOperations(comboBoxValue))
         m_widget->setImageOperation(LWImageOperations(comboBoxValue));
 }
-
 
 void LWControls::updateFilterSelector(int comboBoxValue)
 {
@@ -631,10 +656,24 @@ void LWControls::updateFilterSelector(int comboBoxValue)
     despeckleValue->setEnabled(comboBoxValue == DespeckleFilter);
 }
 
-
-void LWControls::updateDespeckleValue(int value)
+void LWControls::updateNormalizedFile()
 {
-    m_widget->setDespeckleValue(value);
+    QString value = normalizedFile->text();
+    std::cout << value.toStdString() << std::endl;
+    m_widget->setNormalizeFile(value);
+}
+
+void LWControls::updateDarkfieldFile()
+{
+    QString value = darkfieldFile->text();
+    std::cout << value.toStdString() << std::endl;
+    m_widget->setDarkfieldFile(value);
+}
+
+void LWControls::updateDespeckleValue()
+{
+    int val = despeckleValue->value();
+    m_widget->setDespeckleValue(val);
 }
 
 
@@ -646,9 +685,10 @@ void LWControls::setControls(LWCtrl which)
     cyclicBox->setVisible(which & Cyclic);
 
     darkfieldBox->setVisible(which & Darkfield);
+    darkfieldFile->setVisible(which & Darkfield);
     normalizeBox->setVisible(which & Normalize);
+    normalizedFile->setVisible(which & Normalize);
     despeckleBox->setVisible(which & Despeckle);
-    despeckleValueLabel->setVisible(which & Despeckle);
     despeckleValue->setVisible(which & Despeckle);
 
     filterSelector->setVisible(which & ImageOperations);

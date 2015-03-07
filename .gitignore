@@ -2,4 +2,9 @@ build/
 dist/
 *.pyc
 *.egg-info
+*.o
+moc_*.cpp
 MANIFEST
+TAGS
+livewidget
+Makefile

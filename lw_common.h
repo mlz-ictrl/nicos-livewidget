@@ -57,17 +57,15 @@ enum LWImageFilters {
 
 enum LWImageOperations {
     NoImageOperation        = 0,
-    OpenBeamNormalization   = 1,
-    DarkImageSubtraction    = 2,
-    StackAverage            = 3,
-    ImageMultiplyByFloat    = 4,
-    PixelwiseAddition       = 5,
-    PixelwiseSubtraction    = 6,
-    PixelwiseDivision       = 7,
-    PixelwiseMultiplication = 8,
-    StackMedian             = 9,
-    StackMinimum            = 10,
-    StackMaximum            = 11
+    StackAverage            = 1,
+    ImageMultiplyByFloat    = 2,
+    PixelwiseAddition       = 3,
+    PixelwiseSubtraction    = 4,
+    PixelwiseDivision       = 5,
+    PixelwiseMultiplication = 6,
+    StackMedian             = 7,
+    StackMinimum            = 8,
+    StackMaximum            = 9
 };
 
 #endif
