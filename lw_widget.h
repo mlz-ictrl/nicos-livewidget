@@ -55,7 +55,9 @@ class LWWidget : public QWidget
     bool m_showgrid;
     bool m_log10;
     bool m_normalized;
+    QString m_normalizedvalue;
     bool m_darkfieldsubtracted;
+    QString m_darkfieldvalue;
     bool m_despeckled;
     float m_despecklevalue;
 
@@ -94,6 +96,8 @@ class LWWidget : public QWidget
     void setImageFilter(LWImageFilters which);
     void setImageOperation(LWImageOperations which);
     void setDespeckleValue(float value);
+    void setNormalizedValue(QString value);
+    void setDarkfieldValue(QString value);
     void setKeepAspect(bool val);
     void setNormalized(bool val);
     void setDarkfieldSubtracted(bool val);
