@@ -64,6 +64,8 @@ void LWWidget::setInstrumentOption(const char *instr)
         m_instr = INSTR_TOFTOF;
     else if (strcmp(instr, "imaging") == 0)
         m_instr = INSTR_IMAGING;
+    else if (strcmp(instr, "laue") == 0)
+        m_instr = INSTR_LAUE;
     else
         m_instr = INSTR_NONE;
 }
@@ -79,9 +81,18 @@ void LWWidget::unload()
 void LWWidget::resizeEvent(QResizeEvent *event)
 {
     if (isKeepAspect()) {
+
+        int nwidth;
         // approximate the width of the axes and colorbar and keep
         // widget square shaped
-        m_plot->setFixedWidth(m_plot->height() + 140);
+        if (m_instr == INSTR_LAUE) {
+            // keep aspect
+            nwidth = (m_plot->height() *2000./1598. ) + 140;
+        } else {
+            nwidth = m_plot->height() +140;
+        }
+
+        m_plot->setFixedWidth(nwidth);
     }
 
     QWidget::resizeEvent(event);
