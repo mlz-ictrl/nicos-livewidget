@@ -34,6 +34,7 @@ class LWControls;
 #define INSTR_NONE      0
 #define INSTR_TOFTOF    1
 #define INSTR_IMAGING   2
+#define INSTR_LAUE      3
 
 class LWWidget : public QWidget
 {
