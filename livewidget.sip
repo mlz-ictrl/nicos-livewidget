@@ -152,25 +152,26 @@ class LWWidget : QWidget
 %End
 
 enum LWFiletype {
-    TYPE_CASCADE            = 0,
-    TYPE_FITS               = 1,
-    TYPE_TOFTOF             = 2
+    TYPE_NONE,
+    TYPE_CASCADE,
+    TYPE_FITS,
+    TYPE_TOFTOF
 };
 
 enum LWCtrl {
-    Logscale                = 0x001,
-    Grayscale               = 0x002,
-    Cyclic                  = 0x004,
-    CreateProfile           = 0x008,
-    Histogram               = 0x010,
-    MinimumMaximum          = 0x020,
-    BrightnessContrast      = 0x040,
-    Integrate               = 0x080,
-    ImageOperations         = 0x100,
-    Despeckle               = 0x200,
-    Normalize               = 0x400,
-    Darkfield               = 0x800,
-    ShowGrid                = 0x1000,
-    Filelist                = 0x2000
+    Logscale,
+    Grayscale,
+    Cyclic,
+    CreateProfile,
+    Histogram,
+    MinimumMaximum,
+    BrightnessContrast,
+    Integrate,
+    ImageOperations,
+    Despeckle,
+    Normalize,
+    Darkfield,
+    ShowGrid,
+    Filelist
 };
 
