@@ -155,8 +155,7 @@ enum LWFiletype {
     TYPE_NONE,
     TYPE_CASCADE,
     TYPE_FITS,
-    TYPE_TOFTOF,
-    TYPE_RAW
+    TYPE_TOFTOF
 };
 
 enum LWCtrl {

@@ -28,8 +28,7 @@ enum LWFiletype {
     TYPE_NONE               = 0,
     TYPE_CASCADE            = 1,
     TYPE_FITS               = 2,
-    TYPE_TOFTOF             = 3,
-    TYPE_RAW                = 254,
+    TYPE_TOFTOF             = 3
 };
 
 enum LWCtrl {
