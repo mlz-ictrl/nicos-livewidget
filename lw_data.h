@@ -45,6 +45,7 @@ class LWData
     virtual void initFromBuffer(const char *data);
     void _dummyInit();
     bool _readFits(const char *filename);
+    bool _readRaw(const char *filename);
 
   protected:
     // concerning the data

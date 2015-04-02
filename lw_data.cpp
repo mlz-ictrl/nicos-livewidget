@@ -214,7 +214,9 @@ LWData::LWData(const char* filename)
       m_despecklevalue(3000)
 {
     if (! _readFits(filename)) {
+        if (! _readRaw(filename)) {
             _dummyInit();
+        }
     }
 }
 
@@ -335,6 +337,39 @@ bool LWData::_readFits(const char *filename)
 
     return true;
 }
+
+
+bool LWData::_readRaw(const char *filename) {
+
+    /* currently assume format is fixed to '<u2'
+     * size is already set
+    */
+
+    FILE* fp;
+    char* rbuffer;
+    size_t totalsize;
+    size_t readbytes;
+    totalsize = m_width * m_depth * m_height *2;
+    rbuffer =(char*) malloc (totalsize);
+    if (rbuffer!=NULL) {
+        fp = fopen(filename,"r");
+	if (fp==NULL) {
+            free(rbuffer); 
+            return false;
+       }      
+       readbytes=fread(rbuffer, totalsize, 1, fp);
+       fclose(fp);
+       if (readbytes < totalsize) {
+          free(rbuffer);
+          return false;
+       }
+       initFromBuffer(rbuffer);
+       free(rbuffer);
+       return true;
+    }
+    return false;
+}
+
 
 inline data_t LWData::data(int x, int y, int z) const
 {
