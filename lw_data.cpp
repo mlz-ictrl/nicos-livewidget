@@ -26,6 +26,8 @@
 #include <assert.h>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <limits>
 #include <math.h>
 #include <time.h>
@@ -84,6 +86,15 @@ static inline float bswap_64_float(double x)
     return res;
 }
 
+
+void replaceExt(std::string& s, const std::string& newExt) {
+
+   std::string::size_type i = s.rfind('.', s.length());
+
+   if (i != std::string::npos) {
+      s.replace(i+1, newExt.length(), newExt);
+   }
+}
 
 /** LWData ********************************************************************/
 
@@ -218,7 +229,9 @@ LWData::LWData(const char* filename)
       m_normalizefile("")
 {
     if (! _readFits(filename)) {
-        _dummyInit();
+        if (! _readRaw(filename)) {
+            _dummyInit();
+        }
     }
 }
 
@@ -334,6 +347,97 @@ bool LWData::_readFits(const char *filename)
     updateRange();
     return true;
 }
+
+bool LWData::_readRaw(const char *filename) {
+
+    /* currently assume format is fixed to '<u2'
+     * only for the 2-file nicos raw format
+     * only 2D-data
+    */
+
+    std::ifstream fp;
+    std::ifstream hp;
+    char* data;
+    std::string hname(filename);
+    std::string linebuffer;
+    size_t totalsize;
+    unsigned int dwidth(2);
+    std::string type;
+    bool success(false);
+
+
+
+    replaceExt(hname, "header");
+    hp.open(hname.c_str());
+    if (!hp) {
+       hp.open(filename);
+    }
+    if (hp) {
+        while ( getline(hp,linebuffer)) {
+           if (linebuffer.find("ImageType((") != std::string::npos) {
+// template for image info
+// ImageType((1388, 2064), <type 'numpy.uint16'>, ['X', 'Y'])
+               char dummy[101];
+               sscanf(linebuffer.c_str(), "ImageType((%i, %i), %100s",
+                       &m_width, &m_height, dummy);
+               size_t tstart = linebuffer.find("<type 'numpy.");
+               size_t tend = linebuffer.find("'", tstart + 13);
+               type = linebuffer.substr(tstart + 13, tend - (tstart +13));
+               if (type == "uint16" || type == "int16" ){
+                   dwidth = 2;
+               }
+               if (type == "uint32" || type == "int32" ){
+                  dwidth = 4;
+               }
+               m_depth = 1;
+               success =true;
+               break;
+            }
+        }
+        hp.close();
+        if (!success) {
+            std::cerr << "Could not read raw header file" << std::endl;
+            return false;
+        }
+    } else {
+         std::cerr << "File or header not found" << std::endl;
+         return false;
+    }
+
+    totalsize = m_width * m_depth * m_height * dwidth;
+    data =(char*) malloc (totalsize);
+    if (data!=NULL) {
+       fp.open(filename);
+       if (!fp) {
+           free(data);
+           std::cerr << "Could not read raw file" << std::endl;
+           return false;
+       }
+       fp.read(data, totalsize);
+       if (!fp || fp.gcount() < totalsize) {
+           fp.close();
+           free(data);
+           std::cerr << " Not enough data in raw file" <<std::endl;
+           return false;
+       }
+       fp.close();
+       initFromBuffer(NULL);
+       if (type == "uint16"){
+	       COPY_LOOP(uint16_t, m_data);
+       } else if (type == "int16"){
+	       COPY_LOOP(int16_t, m_data);
+       } else if (type == "uint32"){
+	       COPY_LOOP(uint32_t, m_data);
+       } else if (type == "int32"){
+	       COPY_LOOP(int32_t, m_data);
+       }
+       updateRange();
+       free(data);
+       return true;
+    }
+    return false;
+}
+
 
 inline data_t LWData::data(int x, int y, int z) const
 {
