@@ -75,7 +75,7 @@ class LWData
     LWData();
     LWData(int width, int height, int depth, const char *data);
     LWData(int width, int height, int depth, const char *format, const char *data);
-    LWData(const char* filename, LWFiletype filetype);
+    LWData(const char* filename);
     LWData(const LWData &other);
 
     virtual ~LWData();

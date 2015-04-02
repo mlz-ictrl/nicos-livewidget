@@ -40,9 +40,9 @@ int main(int argc, char *argv[])
      LWData *raw_data;
 
      if (argc == 1)
-         raw_data = new LWData("data/raw/hd_000.000.fits", TYPE_FITS);
+         raw_data = new LWData("data/raw/hd_000.000.fits");
      else
-         raw_data = new LWData(argv[1], TYPE_FITS);
+         raw_data = new LWData(argv[1]);
 
      widget.setData(raw_data);
      widget.setControls((LWCtrl)(ShowGrid | Logscale | Grayscale | Filelist |
