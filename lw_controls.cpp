@@ -715,6 +715,6 @@ void LWControls::selectFile(QModelIndex index)
     const char *pFilename = char_array.data();
 
     LWData *data;
-    data = new LWData(pFilename);
+    data = new LWData(pFilename, TYPE_FITS);
     m_widget->setData(data);
 }

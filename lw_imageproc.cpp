@@ -364,13 +364,13 @@ void LWImageProc::pixelwiseAverage(float *averageImage, str_vec filenameList, in
     std::string str_tmp;
 
     str_tmp = filenameList.at(0);
-    LWData tmpImage( (const char*)str_tmp.data());
+    LWData tmpImage( (const char*)str_tmp.data(), TYPE_FITS);
     for(int i = 0; i < width*height; ++i)
         src1[i] = tmpImage.buffer()[i];
 
     for (int i = 1; i < num_images; i++) {
         str_tmp = filenameList.at(i);
-        LWData nextImage((const char*)str_tmp.data());
+        LWData nextImage((const char*)str_tmp.data(), TYPE_FITS);
         for(int i=0; i<width*height; ++i)
             src2[i] = nextImage.buffer()[i];
 

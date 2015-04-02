@@ -38,7 +38,7 @@ class LWData
     LWData(int width, int height, int depth, const char *data);
     LWData(int width, int height, int depth,
            const char *format, const char *data);
-    LWData(const char *filename);
+    LWData(const char *filename, LWFiletype filetype);
 
     int width() const;
     int height() const;
