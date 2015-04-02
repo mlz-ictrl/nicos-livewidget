@@ -196,7 +196,7 @@ LWData::LWData(int width, int height, int depth,
 }
 
 
-LWData::LWData(const char* filename, LWFiletype filetype)
+LWData::LWData(const char* filename)
     : m_data(NULL),
       m_clone(NULL),
       m_data_owned(false),
@@ -213,11 +213,8 @@ LWData::LWData(const char* filename, LWFiletype filetype)
       m_operation(NoImageOperation),
       m_despecklevalue(3000)
 {
-
-    if (filetype == TYPE_FITS) {
-        if (! _readFits(filename)) {
+    if (! _readFits(filename)) {
             _dummyInit();
-        }
     }
 }
 
@@ -491,7 +488,7 @@ void LWData::setNormalized(bool val)
 
         CLOCK_START();
         // XXX file name shouldn't be hardcoded :)
-        LWData openbeam("data/openbeam/ob_hd_1.fits", TYPE_FITS);
+        LWData openbeam("data/openbeam/ob_hd_1.fits");
         float *sdata = (float *)malloc(size() * sizeof(float));
         for (int i = 0; i < size(); ++i)
             sdata[i] = openbeam.buffer()[i];
@@ -531,7 +528,7 @@ void LWData::setDarkfieldSubtracted(bool val)
 
         CLOCK_START();
         // XXX file name shouldn't be hardcoded :)
-        LWData darkfield("data/darkimage/di_hd_1.fits", TYPE_FITS);
+        LWData darkfield("data/darkimage/di_hd_1.fits");
         float *sdata = (float *)malloc(size() * sizeof(float));
         for (int i = 0; i < size(); ++i)
             sdata[i] = darkfield.buffer()[i];
@@ -637,7 +634,7 @@ void LWData::setImageOperation(LWImageOperations which)
             // if not already existing: create average
             // of all openbeam images in the corresponding directory
 
-            LWData openbeam("data/openbeam/ob_hd_1.fits", TYPE_FITS);
+            LWData openbeam("data/openbeam/ob_hd_1.fits");
             for (int i = 0; i < size(); ++i)
                 sdata[i] = openbeam.buffer()[i];
             LWImageProc::pixelwiseDivideImages(pdata, sdata, m_width, m_height);
@@ -646,7 +643,7 @@ void LWData::setImageOperation(LWImageOperations which)
             // if not already existing: create average
             // of all darkfield images in the corresponding directory
 
-            LWData darkimage("data/darkimage/di_hd_1.fits", TYPE_FITS);
+            LWData darkimage("data/darkimage/di_hd_1.fits");
             for (int i = 0; i < size(); ++i)
                 sdata[i] = darkimage.buffer()[i];
             LWImageProc::pixelwiseSubtractImages(pdata, sdata, m_width, m_height);
