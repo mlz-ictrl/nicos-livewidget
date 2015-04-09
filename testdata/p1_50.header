@@ -1,0 +1,36 @@
+### NICOS RAW File Header V2.0
+### Device positions and sample environment state
+         det1_imageheight : 2064 
+          det1_imagewidth : 1388 
+               detz_value : 110.000 mm
+              kappa_value : 0.000 deg
+              omega_value : 0.000 deg
+                phi_value : 0.000 deg
+              Space_value : 4093.974 GiB
+                stx_value : 0.000 mm
+                sty_value : 0.000 mm
+                stz_value : 0.000 mm
+           twotheta_value : 0.000 deg
+### Experiment information
+         Exp_localcontact : R. Esponsible <noreply@frm2.tum.de> 
+             Exp_proposal : p1 
+               Exp_remark :  
+                Exp_title : testing 
+                Exp_users : pedersen 
+                 Laue_doi :  
+            Laue_facility : MLZ 
+          Laue_instrument : Laue 
+         Laue_responsible : R. Esponsible <noreply@frm2.tum.de> 
+### Precisions/tolerances
+           detz_precision : 0.0 mm
+          kappa_precision : 0.0 deg
+          omega_precision : 0.0 deg
+            phi_precision : 0.0 deg
+            stx_precision : 0.0 mm
+            sty_precision : 0.0 mm
+            stz_precision : 0.0 mm
+       twotheta_precision : 0.0 deg
+### Sample and alignment
+        Sample_samplename :  
+
+ImageType((1388, 2064), <type 'numpy.uint16'>, ['X', 'Y'])
