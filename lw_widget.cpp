@@ -78,23 +78,32 @@ void LWWidget::unload()
     }
 }
 
-void LWWidget::resizeEvent(QResizeEvent *event)
-{
+void LWWidget::adjustAspect() {
+
     if (isKeepAspect()) {
 
         int nwidth;
+        double aspect(1.0);
         // approximate the width of the axes and colorbar and keep
-        // widget square shaped
-        if (m_instr == INSTR_LAUE) {
-            // keep aspect
-            nwidth = (m_plot->height() *2000./1598. ) + 140;
-        } else {
-            nwidth = m_plot->height() + 140;
+        // widget aspect linked to the data ascpet
+        if (m_data && m_data->width() >1 && m_data->height()>1 ) {
+            aspect = double(m_data->width()) / double(m_data->height());
+        }
+        else {
+            if (m_instr == INSTR_LAUE) {
+            // default aspect
+                 aspect = 2000./1598.;
+            }
         }
 
+        nwidth = (m_plot->height() * aspect) + 140;
         m_plot->setFixedWidth(nwidth);
     }
+}
 
+void LWWidget::resizeEvent(QResizeEvent *event)
+{
+    adjustAspect();
     QWidget::resizeEvent(event);
 }
 
@@ -140,7 +149,7 @@ void LWWidget::setData(LWData *data)
     m_data->setLog10(prev_log10);
     if (prev_min != -1 || prev_max != -1)
         m_data->setCustomRange(prev_min, prev_max);
-
+    adjustAspect();
     updateGraph(true);
     if (m_plot->getZoomer()->zoomRectIndex() == 0) {
         // re-set zoom base only if not zoomed

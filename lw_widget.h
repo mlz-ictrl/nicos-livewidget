@@ -61,6 +61,7 @@ class LWWidget : public QWidget
     float m_despecklevalue;
 
     virtual void resizeEvent(QResizeEvent *event);
+    void adjustAspect();
 
   public:
     LWWidget(QWidget *parent = NULL);
