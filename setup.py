@@ -3,6 +3,7 @@ import os
 from os import path
 import platform
 from sipdistutils import build_ext as sip_build_ext
+from gitversion import get_git_version
 
 try:
     from PyQt4 import pyqtconfig
@@ -39,6 +40,7 @@ class moc_build_ext(sip_build_ext):
             self.sip_opts = self.sip_opts.split(' ')
 
         self.sip_opts = self.sip_opts + pyqt_sip_flags + pyqwt_sip_flags
+        get_git_version()  # create version.h and RELEASE-VERSION files
 
     def _sip_sipfiles_dir(self):
         return pyqt_sip_dir
@@ -91,7 +93,7 @@ sources = [cppfile for cppfile in os.listdir('.')
 
 setup(
     name='nicoslivewidget',
-    version='1.0',
+    version=get_git_version(),
     ext_modules=[
         Extension('nicoslivewidget',
                   ['livewidget.sip'] + sources,

@@ -8,3 +8,5 @@ MANIFEST
 TAGS
 livewidget
 Makefile
+RELEASE-VERSION
+version.h

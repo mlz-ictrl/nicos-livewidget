@@ -31,12 +31,16 @@ from PyQt4.QtGui import QMainWindow, QApplication
 from PyQt4.uic import loadUi
 
 # Allow running this after "python setup.py build"
-sys.path.extend(glob.glob('build/lib.*'))
+sys.path[0:0] = glob.glob('build/lib.*')
 
 # pylint: disable=F0401
 from nicoslivewidget import LWWidget, LWData, ShowGrid, Logscale, Grayscale, \
     Filelist, Normalize, Darkfield, Despeckle, CreateProfile, Histogram, \
     MinimumMaximum, BrightnessContrast
+try:
+    from nicoslivewidget import __version__
+except ImportError:
+    __version__ = 'pre 0.1.2'
 
 
 class MainWindow(QMainWindow):
@@ -59,6 +63,10 @@ class MainWindow(QMainWindow):
         self.livewidget.setData(data)
         # self.livewidget.setLog10(True)
         self.livewidget.setKeepAspect(True)
+
+    def setWindowTitle(self, title):
+        title += ' version:' + __version__
+        QMainWindow.setWindowTitle(self, title)
 
     def setColormap(self, on):
         self.livewidget.setStandardColorMap(self.grayscaleBox.isChecked(),

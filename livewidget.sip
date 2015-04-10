@@ -21,7 +21,7 @@
 //
 // *****************************************************************************
 
-%Module nicoslivewidget 0
+%Module(name=nicoslivewidget, version=1)
 
 %Import QtGui/QtGuimod.sip
 %Import QtCore/QtCoremod.sip
@@ -176,3 +176,9 @@ enum LWCtrl {
     Filelist
 };
 
+const char *__version__;
+
+%ModuleCode
+#include "version.h"
+static const char *__version__ = VERSION;
+%End

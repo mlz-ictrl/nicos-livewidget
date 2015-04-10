@@ -1,2 +1,3 @@
 include *.h
 include *.cpp
+include RELEASE-VERSION
