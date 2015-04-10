@@ -270,15 +270,23 @@ void LWControls::setupUi()
     hLayout = new QHBoxLayout();
     filelistLabel = new QLabel("directory", this);
     hLayout->addWidget(filelistLabel);
-    filelistDirectory = new QLineEdit("/data/FRM-II/current", this);
+    filelistDirectory = new QLineEdit("/data", this);
     mainLayout->addWidget(filelistDirectory);
     mainLayout->addLayout(hLayout);
 
+    QStringList knownExt;
+    knownExt.append("*.dat");
+    knownExt.append("*.raw");
+    knownExt.append("*.fits");
+
     filelistView = new QListView(this);
-    filelistModel = new QStandardItemModel(this);
-    filelistItem = new QStandardItem();
+    filelistModel = new QFileSystemModel(this);
+    filelistModel->setFilter(QDir::AllDirs|QDir::AllEntries| QDir::NoDot);
+    filelistModel->setNameFilters(knownExt);
+    QModelIndex rootindex=filelistModel->setRootPath("/data");
 
     filelistView->setModel(filelistModel);
+    filelistView->setRootIndex(rootindex);
     mainLayout->addWidget(filelistView);
 
     listFiles();
@@ -345,6 +353,8 @@ void LWControls::setupUi()
                      this, SLOT(listFiles()));
     QObject::connect(filelistView, SIGNAL(clicked(QModelIndex)),
                      this, SLOT(selectFile(QModelIndex)));
+    QObject::connect(filelistModel,SIGNAL(directoryLoaded(QString)),
+                     this,SLOT(model_directoryLoaded(QString)));
 }
 
 void LWControls::dataUpdated(LWData *data)
@@ -733,28 +743,32 @@ void LWControls::setAxisNames(const char *xaxis, const char *yaxis)
 
 void LWControls::listFiles()
 {
-    filelistModel->clear();
-
     QString location = filelistDirectory->text();
     QDir dir(location);
 
     if (dir.exists()) {
-        QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
-        foreach (QFileInfo entryInfo, entries) {
-            QString path = entryInfo.absoluteFilePath();
-            filelistItem->setText(path);
-            filelistModel->appendRow(filelistItem->clone());
-        }
+    	QModelIndex rootindex=filelistModel->setRootPath(dir.path());
+        filelistView->setRootIndex(rootindex);
     }
 }
 
 void LWControls::selectFile(QModelIndex index)
 {
-    QString filename = filelistModel->itemFromIndex(index)->text();
-    QByteArray char_array = filename.toLatin1();
-    const char *pFilename = char_array.data();
+    if (filelistModel->isDir(index)) {
+       QModelIndex rootindex=filelistModel->setRootPath( filelistModel->filePath(index));
+       filelistDirectory->setText(filelistModel->filePath(index));
+       filelistView->setRootIndex(rootindex);
+    } else {
+       QString filename = filelistModel->filePath(index);
 
-    LWData *data;
-    data = new LWData(pFilename);
-    m_widget->setData(data);
+       LWData *data;
+       data = new LWData(filename.toStdString().c_str());
+       m_widget->setData(data);
+    }
+}
+
+void LWControls::model_directoryLoaded(QString path)
+{
+    filelistModel->sort(0, Qt::AscendingOrder);
+    filelistView->setCurrentIndex(filelistModel->index(0, 0, filelistView->rootIndex()));
 }

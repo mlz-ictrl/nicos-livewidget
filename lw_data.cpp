@@ -290,7 +290,7 @@ bool LWData::_readFits(const char *filename)
     data_t *data = NULL;
 
     if (fits_open_file(&file_pointer, filename, READONLY, &status)) {
-        std::cerr << "Could not open file " << filename << std::endl;
+        std::cerr << "Could not open file " << filename << " as FITS" <<std::endl;
         return false;
     }
     if (fits_get_img_param(file_pointer, max_dimensions, &bitpix,

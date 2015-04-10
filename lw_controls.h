@@ -32,13 +32,11 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QComboBox>
-#include <QFileInfoList>
-#include <QFileInfo>
 #include <QDir>
 #include <QFile>
 #include <QLineEdit>
 #include <QListView>
-#include <QStandardItemModel>
+#include <QFileSystemModel>
 
 #include "qwt_plot_curve.h"
 
@@ -121,8 +119,7 @@ class LWControls : public QWidget
     QLabel *filelistLabel;
     QLineEdit *filelistDirectory;
     QListView *filelistView;
-    QStandardItemModel *filelistModel;
-    QStandardItem *filelistItem;
+    QFileSystemModel *filelistModel;
 
     QwtPlotCurve *profLine0;
     QwtPlotCurve *profLine1;
@@ -161,6 +158,7 @@ class LWControls : public QWidget
     void createYSum();
     void listFiles();
     void selectFile(QModelIndex);
+    void model_directoryLoaded(QString);
 
   public:
     LWControls(QWidget *parent = NULL);
