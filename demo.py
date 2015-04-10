@@ -34,9 +34,9 @@ from PyQt4.uic import loadUi
 sys.path.extend(glob.glob('build/lib.*'))
 
 # pylint: disable=F0401
-from nicoslivewidget import LWWidget, LWData, ShowGrid, Logscale, Grayscale, Filelist, \
-                                 Normalize, Darkfield, Despeckle, ImageOperations, \
-                                 CreateProfile, Histogram, MinimumMaximum, BrightnessContrast
+from nicoslivewidget import LWWidget, LWData, ShowGrid, Logscale, Grayscale, \
+    Filelist, Normalize, Darkfield, Despeckle, CreateProfile, Histogram, \
+    MinimumMaximum, BrightnessContrast
 
 
 class MainWindow(QMainWindow):
@@ -46,17 +46,18 @@ class MainWindow(QMainWindow):
 
         self.livewidget = LWWidget(self)
         self.livewidget.setKeepAspect(True)
-        #self.livewidget.setControlsVisible(False)
+        # self.livewidget.setControlsVisible(False)
         self.livewidget.setControls(ShowGrid | Logscale | Grayscale | Filelist |
-                                 Normalize | Darkfield | Despeckle |
-                                 CreateProfile | Histogram | MinimumMaximum |BrightnessContrast)
+                                    Normalize | Darkfield | Despeckle |
+                                    CreateProfile | Histogram | MinimumMaximum |
+                                    BrightnessContrast)
         self.plotLayout.addWidget(self.livewidget)
         self.livewidget.setAxisLabels('detectors', 'time channels')
 
         x = open("testdata/testdata.npy").read()[80:]
         data = LWData(1024, 1024, 1, "<u4", x)
         self.livewidget.setData(data)
-        #self.livewidget.setLog10(True)
+        # self.livewidget.setLog10(True)
         self.livewidget.setKeepAspect(True)
 
     def setColormap(self, on):
