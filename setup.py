@@ -68,19 +68,19 @@ if dist == 'openSUSE':
                           "/usr/include/qwt",
                           "/usr/include/libcfitsio0",
                           "/usr/include/cfitsio"]
-    extra_libs = ["qwt", "cfitsio"]
+    extra_libs = ["qwt", "cfitsio", "tiff"]
 elif dist in ['Ubuntu', 'LinuxMint']:
     extra_include_dirs = ["/usr/include/qwt-qt4", "/usr/include/qwt"]
-    extra_libs = ["qwt-qt4", "cfitsio"]
+    extra_libs = ["qwt-qt4", "cfitsio", "tiff"]
 elif dist == 'CentOS':
     extra_include_dirs = ["/usr/local/qwt5/include"]
-    extra_libs = ["qwt", "cfitsio"]
+    extra_libs = ["qwt", "cfitsio", "tiff"]
 else:
     print("WARNING: Don't know where to find Qwt headers and libraries "
           "for your distribution")
     # still try to build with usable defaults
     extra_include_dirs = ["/usr/include/qwt5", "/usr/include/qwt"]
-    extra_libs = ["qwt", "cfitsio"]
+    extra_libs = ["qwt", "cfitsio", "tiff"]
 
 extra_include_dirs.extend(path.join(qt_inc_dir, subdir)
                           for subdir in ['', 'QtCore', 'QtGui'])

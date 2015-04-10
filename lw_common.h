@@ -29,6 +29,7 @@ enum LWFiletype {
     TYPE_CASCADE            = 1,
     TYPE_FITS               = 2,
     TYPE_TOFTOF             = 3,
+    TYPE_TIFF               = 4,
     TYPE_RAW                = 254,
 };
 

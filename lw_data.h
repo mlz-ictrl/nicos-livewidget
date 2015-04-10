@@ -47,6 +47,7 @@ class LWData
     void _dummyInit();
     bool _readFits(const char *filename);
     bool _readRaw(const char *filename);
+    bool _readTiff(const char *filename);
 
   protected:
     // concerning the data

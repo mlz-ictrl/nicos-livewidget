@@ -156,6 +156,7 @@ enum LWFiletype {
     TYPE_CASCADE,
     TYPE_FITS,
     TYPE_TOFTOF,
+    TYPE_TIFF,
     TYPE_RAW
 };
 

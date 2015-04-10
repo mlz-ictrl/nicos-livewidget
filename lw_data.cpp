@@ -33,6 +33,7 @@
 #include <time.h>
 
 #include <fitsio.h>
+#include <tiffio.h>
 
 #include <QStringList>
 
@@ -230,7 +231,9 @@ LWData::LWData(const char* filename)
 {
     if (! _readFits(filename)) {
         if (! _readRaw(filename)) {
-            _dummyInit();
+           if (! _readTiff(filename)) {
+              _dummyInit();
+           }
         }
     }
 }
@@ -437,6 +440,52 @@ bool LWData::_readRaw(const char *filename) {
     }
     return false;
 }
+
+bool LWData::_readTiff(const char* filename) {
+    bool success = false;
+    TIFF* tif = TIFFOpen(filename, "r");
+    if (tif) {
+        uint16_t spp, bpp;
+        uint32_t linesize;
+        char *data;
+
+
+        TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &m_height);
+        TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &m_width);
+        if (m_height <1 || m_height > 20000 || m_width <1 || m_width > 20000) {
+           // limit to at least 1x1 to max 20000x20000 pixel
+           TIFFClose(tif);
+           return false;
+        }
+        m_depth = 1;
+        TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bpp);
+        TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
+        linesize = TIFFScanlineSize(tif);
+        data = (char*) malloc(linesize * m_height);
+        if (!data) {
+           TIFFClose(tif);
+           return false;
+        }
+
+        for (size_t i = 0; i < m_height; i++) {
+               TIFFReadScanline(tif, &data[i * linesize], i, 0);
+        }
+
+        TIFFClose(tif);
+        initFromBuffer(NULL);
+        if (bpp == 16) {
+            COPY_LOOP(uint16_t, m_data);
+            success = true;
+        } else if (bpp == 8 ) {
+            COPY_LOOP(uint8_t, m_data);
+            success =true;
+        }
+	 updateRange();
+        free(data);
+   }
+   return success;
+}
+
 
 
 inline data_t LWData::data(int x, int y, int z) const

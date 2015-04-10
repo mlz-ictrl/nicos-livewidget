@@ -278,6 +278,7 @@ void LWControls::setupUi()
     knownExt.append("*.dat");
     knownExt.append("*.raw");
     knownExt.append("*.fits");
+    knownExt.append("*.tif");
 
     filelistView = new QListView(this);
     filelistModel = new QFileSystemModel(this);
