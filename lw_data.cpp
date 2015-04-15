@@ -480,7 +480,7 @@ bool LWData::_readTiff(const char* filename) {
             COPY_LOOP(uint8_t, m_data);
             success =true;
         }
-	 updateRange();
+	updateRange();
         free(data);
    }
    return success;
@@ -694,8 +694,7 @@ void LWData::setNormalized(bool val)
         LWImageProc::pixelwiseDivideImages(data, ob_data, m_width, m_height);
         CLOCK_STOP("pixelwise divide images");
 
-        for (int i = 0; i < size(); ++i)
-            m_data[i] = (data_t)data[i];
+        clampedCopyFloatVals(data);
 
         free(data);
         free(ob_data);
@@ -722,6 +721,20 @@ void LWData::setNormalizeFile(QString val)
 }
 
 
+void LWData::clampedCopyFloatVals(float* pdata){
+        for (int i = 0; i < size(); ++i){
+            if ( pdata[i] >  std::numeric_limits<data_t>::min()) {
+		if ( pdata[i] < std::numeric_limits<data_t>::max() ) {
+	            m_data[i] = (data_t)pdata[i];
+                } else {
+                    m_data[i] = std::numeric_limits<data_t>::max() ;
+                }
+            } else {
+                m_data[i] = std::numeric_limits<data_t>::min() ;
+           }
+        }
+}
+
 void LWData::setDarkfieldSubtracted(bool val)
 {
     if (m_darkfieldsubtracted == val)
@@ -744,9 +757,7 @@ void LWData::setDarkfieldSubtracted(bool val)
         LWImageProc::pixelwiseSubtractImages(pdata, sdata, m_width, m_height);
         CLOCK_STOP("pixelwise subtract images");
 
-        for (int i = 0; i < size(); ++i)
-            m_data[i] = (data_t)pdata[i];
-
+        clampedCopyFloatVals(pdata);
         free(pdata);
         free(sdata);
         updateRange();

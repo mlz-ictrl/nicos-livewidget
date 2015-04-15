@@ -38,7 +38,6 @@
 // data type used for single pixel count values
 typedef uint32_t data_t;
 
-
 class LWData
 {
   private:
@@ -72,6 +71,7 @@ class LWData
     float m_despecklevalue;
     QString m_darkfieldfile;
     QString m_normalizefile;
+    void clampedCopyFloatVals(float* pdata);
 
     data_t data(int x, int y, int z) const;
     int size() const { return m_width * m_height * m_depth; }
