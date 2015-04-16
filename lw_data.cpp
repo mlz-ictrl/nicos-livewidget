@@ -111,7 +111,10 @@ void LWData::_dummyInit()
 }
 
 LWData::LWData()
-    : m_width(1),
+    : m_data(NULL),
+      m_clone(NULL),
+      m_data_owned(false),
+      m_width(1),
       m_height(1),
       m_depth(1),
       m_log10(0),
@@ -121,30 +124,77 @@ LWData::LWData()
 }
 
 
-void LWData::initFromBuffer(const char *data)
+#define COPY_LOOP(type, data_ptr)                       \
+    type *p = (type *)data;                                     \
+    data_t *q = data_ptr;                                       \
+    for (int i = 0; i < size(); i++){  \
+        q[i] = p[i];       \
+    }
+
+#define COPY_LOOP_CONVERTED(type, converter, data_ptr)          \
+    type *p = (type *)data;                                     \
+    data_t *q = data_ptr;                                       \
+    for (int i = 0; i < size(); i++) {        \
+        q[i] = converter(p[i]);                                 \
+    }
+
+void LWData::initFromBuffer(const void *data, std::string format = "<u4")
 {
-    m_data = new data_t[size()];
-    m_clone = new data_t[size()];
+    if (m_data != NULL && m_data_owned) { delete[] m_data;}
+    if (m_clone != NULL && m_data_owned) { delete[] m_clone;}
+    m_data = new data_t[size()]();
+    m_clone = new data_t[size()]();
 
     m_data_owned = true;
     if (m_data == NULL || m_clone == NULL) {
         std::cerr << "could not allocate memory for data" << std::endl;
+        if (m_data != NULL) { delete[] m_data; m_data=NULL;}
+        if (m_clone != NULL) { delete[] m_clone;m_clone=NULL;}
         return;
     }
-    if (data) {
+    if (data != NULL) {
+    // XXX currently, we interpret signed types as unsigned
+
+    // the easy case
+      if (format == "<u4" || format == "<i4" ||
+        format == "u4"  || format == "i4") {
         memcpy(m_data, data, sizeof(data_t) * size());
-        memcpy(m_clone, data, sizeof(data_t) * size());
-        updateRange();
-    } else {
-        memset(m_data, 0, sizeof(data_t) * size());
-        memset(m_clone, 0, sizeof(data_t) * size());
-        m_min = m_max = 0;
+      } else if (format == ">I4" || format == ">i4") {
+        COPY_LOOP_CONVERTED(uint32_t, bswap_32, m_data);
+      } else if (format == "<u2"  || format == "<i2"  ||
+               format == "u2"  || format == "i2" ) {
+        COPY_LOOP(uint16_t, m_data);
+      } else if (format == "<u1"  || format == "<i1"  ||
+               format == "u1"  || format == "i1" ) {
+        COPY_LOOP(uint8_t, m_data);
+      } else if (format == ">u2" || format == ">i2" ) {
+        COPY_LOOP_CONVERTED(uint16_t, bswap_16, m_data);
+      } else if (format == "u1" || format == "i1" ) {
+        COPY_LOOP(uint8_t, m_data);
+      } else if (format == "<f8" || format == "f8" ) {
+        COPY_LOOP(double, m_data);
+      } else if (format == ">f8" ) {
+        COPY_LOOP_CONVERTED(double, bswap_64_float, m_data);
+      } else if (format == "<f4" || format == "f4" ) {
+        COPY_LOOP(float, m_data);
+      } else if (format == ">f4" ) {
+        COPY_LOOP_CONVERTED(float, bswap_32_float, m_data);
+      } else {
+        std::cerr << "Unsupported format: " << format << "!" << std::endl;
+      }
     }
+    memcpy(m_clone, m_data, sizeof(data_t) * size());
+    updateRange();
+
+
 }
 
 
 LWData::LWData(int width, int height, int depth, const char *data)
-    : m_width(width),
+    : m_data(NULL),
+      m_clone(NULL),
+      m_data_owned(false),
+      m_width(width),
       m_height(height),
       m_depth(depth),
       m_cur_z(0),
@@ -154,59 +204,22 @@ LWData::LWData(int width, int height, int depth, const char *data)
     initFromBuffer(data);
 }
 
-#define COPY_LOOP(type, data_ptr)                       \
-    type *p = (type *)data;                             \
-    data_t *q = data_ptr;                               \
-    for (int i = 0; i < m_width*m_height*m_depth; i++)  \
-        *q++ = *p++
 
-#define COPY_LOOP_CONVERTED(type, converter, data_ptr)          \
-    type *p = (type *)data;                                     \
-    data_t *q = data_ptr;                                       \
-    for (int i = 0; i < m_width*m_height*m_depth; i++) {        \
-        *q++ = converter(*p++);                                 \
-    }
 
 LWData::LWData(int width, int height, int depth,
                const char *format, const char *data)
-    : m_width(width),
+    : m_data(NULL),
+      m_clone(NULL),
+      m_data_owned(false),
+      m_width(width),
       m_height(height),
       m_depth(depth),
       m_cur_z(0),
       m_log10(0),
       m_custom_range(0)
 {
-    // XXX currently, we interpret signed types as unsigned
+      initFromBuffer(data, format);
 
-    // the easy case
-    if (!strcmp(format, "<u4") || !strcmp(format, "<i4") ||
-        !strcmp(format, "u4")  || !strcmp(format, "i4")) {
-        initFromBuffer(data);
-        return;
-    }
-
-    initFromBuffer(NULL);
-    if (!strcmp(format, ">I4") || !strcmp(format, ">i4")) {
-        COPY_LOOP_CONVERTED(uint32_t, bswap_32, m_data);
-    } else if (!strcmp(format, "<u2") || !strcmp(format, "<i2") ||
-               !strcmp(format, "u2")  || !strcmp(format, "i2")) {
-        COPY_LOOP(uint16_t, m_data);
-    } else if (!strcmp(format, ">u2") || !strcmp(format, ">i2")) {
-        COPY_LOOP_CONVERTED(uint16_t, bswap_16, m_data);
-    } else if (!strcmp(format, "u1") || !strcmp(format, "i1")) {
-        COPY_LOOP(uint8_t, m_data);
-    } else if (!strcmp(format, "<f8") || !strcmp(format, "f8")) {
-        COPY_LOOP(double, m_data);
-    } else if (!strcmp(format, ">f8")) {
-        COPY_LOOP_CONVERTED(double, bswap_64_float, m_data);
-    } else if (!strcmp(format, "<f4") || !strcmp(format, "f4")) {
-        COPY_LOOP(float, m_data);
-    } else if (!strcmp(format, ">f4")) {
-        COPY_LOOP_CONVERTED(float, bswap_32_float, m_data);
-    } else {
-        std::cerr << "Unsupported format: " << format << "!" << std::endl;
-    }
-    updateRange();
 }
 
 
@@ -239,7 +252,9 @@ LWData::LWData(const char* filename)
 }
 
 LWData::LWData(const LWData &other)
-    : m_data_owned(true),
+    : m_data(NULL),
+      m_clone(NULL),
+      m_data_owned(false),
       m_width(other.m_width),
       m_height(other.m_height),
       m_depth(other.m_depth),
@@ -259,6 +274,7 @@ LWData::LWData(const LWData &other)
 {
     m_data = new data_t[other.size()];
     m_clone = new data_t[other.size()];
+    m_data_owned = true;
     memcpy(m_data, other.m_data, sizeof(data_t) * other.size());
     memcpy(m_clone, other.m_clone, sizeof(data_t) * other.size());
 }
@@ -315,14 +331,11 @@ bool LWData::_readFits(const char *filename)
 
     total_pixel = m_height * m_width;
 
-    float_data = (float *) malloc(total_pixel * sizeof(float));  // 32bit float values
-    data = (data_t *) malloc(total_pixel * sizeof(data_t));  // 32bit integer values
+    float_data = new float[total_pixel]();  // 32bit float values
 
-    if (!float_data || !data) {
+    if (!float_data) {
         std::cerr << "Memory allocation for data arrays failed!" << std::endl;
         fits_close_file(file_pointer, &status);
-        if (float_data)
-            free(float_data);
         return false;
     }
 
@@ -332,22 +345,15 @@ bool LWData::_readFits(const char *filename)
         fits_read_errmsg(buf);
         std::cerr << "Could not read image data from file: " << buf << std::endl;
         fits_close_file(file_pointer, &status);
-        free(float_data);
-        free(data);
+        delete[] float_data;
         return false;
     }
 
     fits_close_file(file_pointer, &status);
 
-    for (int y = 0; y < m_height; ++y)
-        for (int x = 0; x < m_width; ++x)
-            data[x + y*m_width] = (data_t)float_data[x + y*m_width];
+    initFromBuffer(float_data, "f4");
 
-    initFromBuffer((char *)data);
-
-    free(float_data);
-    free(data);
-    updateRange();
+    delete[] float_data;
     return true;
 }
 
@@ -388,9 +394,11 @@ bool LWData::_readRaw(const char *filename) {
                type = linebuffer.substr(tstart + 13, tend - (tstart +13));
                if (type == "uint16" || type == "int16" ){
                    dwidth = 2;
+                   type = "<u2";
                }
                if (type == "uint32" || type == "int32" ){
                   dwidth = 4;
+                  type = "<u4";
                }
                m_depth = 1;
                success =true;
@@ -406,13 +414,12 @@ bool LWData::_readRaw(const char *filename) {
          std::cerr << "File or header not found" << std::endl;
          return false;
     }
-
-    totalsize = m_width * m_depth * m_height * dwidth;
-    data =(char*) malloc (totalsize);
+    totalsize = size() * dwidth;
+    data = new char[totalsize]();
     if (data!=NULL) {
        fp.open(filename);
        if (!fp) {
-           free(data);
+           delete[] data;
            std::cerr << "Could not read raw file" << std::endl;
            return false;
        }
@@ -424,18 +431,8 @@ bool LWData::_readRaw(const char *filename) {
            return false;
        }
        fp.close();
-       initFromBuffer(NULL);
-       if (type == "uint16"){
-	       COPY_LOOP(uint16_t, m_data);
-       } else if (type == "int16"){
-	       COPY_LOOP(int16_t, m_data);
-       } else if (type == "uint32"){
-	       COPY_LOOP(uint32_t, m_data);
-       } else if (type == "int32"){
-	       COPY_LOOP(int32_t, m_data);
-       }
-       updateRange();
-       free(data);
+       initFromBuffer(data, type);
+       delete[] data;
        return true;
     }
     return false;
@@ -448,6 +445,7 @@ bool LWData::_readTiff(const char* filename) {
         uint16_t spp, bpp;
         uint32_t linesize;
         char *data;
+        std::string itype("<u2");
 
 
         TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &m_height);
@@ -460,8 +458,13 @@ bool LWData::_readTiff(const char* filename) {
         m_depth = 1;
         TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bpp);
         TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
+        if (bpp == 16) {
+           itype = "<u2";
+        } else if (bpp == 8 ) {
+           itype = "<u1";
+        }
         linesize = TIFFScanlineSize(tif);
-        data = (char*) malloc(linesize * m_height);
+        data = new char[linesize * m_height]();
         if (!data) {
            TIFFClose(tif);
            return false;
@@ -471,17 +474,10 @@ bool LWData::_readTiff(const char* filename) {
                TIFFReadScanline(tif, &data[i * linesize], i, 0);
         }
 
-        TIFFClose(tif);
-        initFromBuffer(NULL);
-        if (bpp == 16) {
-            COPY_LOOP(uint16_t, m_data);
-            success = true;
-        } else if (bpp == 8 ) {
-            COPY_LOOP(uint8_t, m_data);
-            success =true;
-        }
-	updateRange();
-        free(data);
+        TIFFClose(tif); 
+        initFromBuffer(data, itype);
+        delete[] data;
+        success = true;
    }
    return success;
 }

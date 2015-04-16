@@ -42,7 +42,7 @@ class LWData
 {
   private:
     virtual void updateRange();
-    virtual void initFromBuffer(const char *data);
+    virtual void initFromBuffer(const void *data, std::string format);
     void _dummyInit();
     bool _readFits(const char *filename);
     bool _readRaw(const char *filename);
