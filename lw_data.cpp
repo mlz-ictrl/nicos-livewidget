@@ -386,17 +386,23 @@ bool LWData::_readRaw(const char *filename) {
            if (linebuffer.find("ImageType((") != std::string::npos) {
 // template for image info
 // ImageType((1388, 2064), <type 'numpy.uint16'>, ['X', 'Y'])
+// ImageType((1388, 2064), '<u2', ['X', 'Y'])
                char dummy[101];
                sscanf(linebuffer.c_str(), "ImageType((%i, %i), %100s",
                        &m_width, &m_height, dummy);
+               int offset=13;
                size_t tstart = linebuffer.find("<type 'numpy.");
-               size_t tend = linebuffer.find("'", tstart + 13);
-               type = linebuffer.substr(tstart + 13, tend - (tstart +13));
-               if (type == "uint16" || type == "int16" ){
+               if (tstart == std::string::npos) {
+                     tstart = linebuffer.find("'");
+                     offset =1;
+               }
+               size_t tend = linebuffer.find("'", tstart + offset);
+               type = linebuffer.substr(tstart + offset, tend - (tstart +offset));
+               if (type == "uint16" || type == "int16"  || type == "<u2") {
                    dwidth = 2;
                    type = "<u2";
                }
-               if (type == "uint32" || type == "int32" ){
+               if (type == "uint32" || type == "int32" || type == "<u4"){
                   dwidth = 4;
                   type = "<u4";
                }
@@ -474,7 +480,7 @@ bool LWData::_readTiff(const char* filename) {
                TIFFReadScanline(tif, &data[i * linesize], i, 0);
         }
 
-        TIFFClose(tif); 
+        TIFFClose(tif);
         initFromBuffer(data, itype);
         delete[] data;
         success = true;
