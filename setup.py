@@ -1,7 +1,9 @@
-from distutils.core import setup, Extension
 import os
-from os import path
+import sys
 import platform
+from os import path
+from distutils.core import setup, Extension
+
 from sipdistutils import build_ext as sip_build_ext
 from gitversion import get_git_version
 
@@ -62,30 +64,36 @@ class moc_build_ext(sip_build_ext):
         return ret
 
 
-dist = platform.linux_distribution()[0].strip()  # old openSUSE appended a space here :(
-if dist == 'openSUSE':
-    extra_include_dirs = ["/usr/include/qwt5",
-                          "/usr/include/qwt",
-                          "/usr/include/libcfitsio0",
-                          "/usr/include/cfitsio"]
+if sys.platform == 'darwin':
+    extra_include_dirs = ["/usr/local/qwt/include", "/usr/local/cfitsio/include"]
     extra_libs = ["qwt", "cfitsio", "tiff"]
-elif dist in ['Ubuntu', 'LinuxMint']:
-    extra_include_dirs = ["/usr/include/qwt-qt4", "/usr/include/qwt"]
-    extra_libs = ["qwt-qt4", "cfitsio", "tiff"]
-elif dist == 'CentOS':
-    extra_include_dirs = ["/usr/local/qwt5/include"]
-    extra_libs = ["qwt", "cfitsio", "tiff"]
+    extra_lib_dirs = ["/usr/local/qwt/lib", "/usr/local/cfitsio/lib"]
 else:
-    print("WARNING: Don't know where to find Qwt headers and libraries "
-          "for your distribution")
-    # still try to build with usable defaults
-    extra_include_dirs = ["/usr/include/qwt5", "/usr/include/qwt"]
-    extra_libs = ["qwt", "cfitsio", "tiff"]
+    extra_lib_dirs = []
+    dist = platform.linux_distribution()[0].strip()  # old openSUSE appended a space here :(
+    if dist == 'openSUSE':
+        extra_include_dirs = ["/usr/include/qwt5",
+                              "/usr/include/qwt",
+                              "/usr/include/libcfitsio0",
+                              "/usr/include/cfitsio"]
+        extra_libs = ["qwt", "cfitsio", "tiff"]
+    elif dist in ['Ubuntu', 'LinuxMint']:
+        extra_include_dirs = ["/usr/include/qwt-qt4", "/usr/include/qwt"]
+        extra_libs = ["qwt-qt4", "cfitsio", "tiff"]
+    elif dist == 'CentOS':
+        extra_include_dirs = ["/usr/local/qwt5/include"]
+        extra_libs = ["qwt", "cfitsio", "tiff"]
+    else:
+        print("WARNING: Don't know where to find Qwt headers and libraries "
+              "for your distribution")
+        # still try to build with usable defaults
+        extra_include_dirs = ["/usr/include/qwt5", "/usr/include/qwt"]
+        extra_libs = ["qwt", "cfitsio", "tiff"]
 
 extra_include_dirs.extend(path.join(qt_inc_dir, subdir)
                           for subdir in ['', 'QtCore', 'QtGui'])
 extra_libs.extend(['QtCore', 'QtGui'])
-extra_lib_dirs = [qt_lib_dir]
+extra_lib_dirs.append(qt_lib_dir)
 
 sources = [cppfile for cppfile in os.listdir('.')
            if cppfile.startswith('lw_') and cppfile.endswith('.cpp')

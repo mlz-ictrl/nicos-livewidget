@@ -591,8 +591,8 @@ void LWData::setLog10(bool val)
                 m_range_min = safe_log10(m_range_min);
                 m_range_max = safe_log10(m_range_max);
             } else {
-                m_range_min = exp10(m_range_min);
-                m_range_max = exp10(m_range_max);
+                m_range_min = exp(m_range_min * log(10.));
+                m_range_max = exp(m_range_max * log(10.));
             }
         }
         m_log10 = val;
