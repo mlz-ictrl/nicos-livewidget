@@ -83,6 +83,9 @@ else:
     elif dist == 'CentOS':
         extra_include_dirs = ["/usr/local/qwt5/include"]
         extra_libs = ["qwt", "cfitsio", "tiff"]
+    elif dist == 'Fedora':
+        extra_include_dirs = ["/usr/include/qwt5-qt4", "/usr/include/cfitsio"]
+        extra_libs = ["qwt5-qt4", "cfitsio", "tiff"]
     else:
         print("WARNING: Don't know where to find Qwt headers and libraries "
               "for your distribution")
