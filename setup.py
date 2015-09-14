@@ -104,7 +104,7 @@ sources = [cppfile for cppfile in os.listdir('.')
 
 setup(
     name='nicoslivewidget',
-    version=get_git_version(),
+    version=get_git_version().lstrip('v'),
     ext_modules=[
         Extension('nicoslivewidget',
                   ['livewidget.sip'] + sources,
