@@ -77,7 +77,7 @@ else:
                               "/usr/include/libcfitsio0",
                               "/usr/include/cfitsio"]
         extra_libs = ["qwt", "cfitsio", "tiff"]
-    elif dist in ['Ubuntu', 'LinuxMint']:
+    elif dist in ['Ubuntu', 'LinuxMint', 'debian',]:
         extra_include_dirs = ["/usr/include/qwt-qt4", "/usr/include/qwt"]
         extra_libs = ["qwt-qt4", "cfitsio", "tiff"]
     elif dist == 'CentOS':
