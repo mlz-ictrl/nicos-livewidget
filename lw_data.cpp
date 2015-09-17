@@ -308,7 +308,7 @@ bool LWData::_readFits(const char *filename)
     float *float_data = NULL;
     data_t *data = NULL;
 
-    if (fits_open_file(&file_pointer, filename, READONLY, &status)) {
+    if (fits_open_diskfile(&file_pointer, filename, READONLY, &status)) {
         std::cerr << "Could not open file " << filename << " as FITS" <<std::endl;
         return false;
     }
