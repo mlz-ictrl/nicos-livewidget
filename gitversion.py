@@ -31,6 +31,8 @@
 # contains the following line:
 #
 #   include RELEASE-VERSION
+from __future__ import print_function
+
 
 __all__ = ['get_git_version',]
 
@@ -102,4 +104,4 @@ def get_git_version(abbrev=4):
 
 
 if __name__ == "__main__":
-    print get_git_version()
+    print(get_git_version())
