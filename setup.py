@@ -83,6 +83,7 @@ else:
     elif dist == 'CentOS':
         extra_include_dirs = ["/usr/local/qwt5/include"]
         extra_libs = ["qwt", "cfitsio", "tiff"]
+        extra_lib_dirs.append("/usr/local/qwt5/lib")
     elif dist == 'Fedora':
         extra_include_dirs = ["/usr/include/qwt5-qt4", "/usr/include/cfitsio"]
         extra_libs = ["qwt5-qt4", "cfitsio", "tiff"]
