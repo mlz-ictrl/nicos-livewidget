@@ -35,21 +35,16 @@ LWWidget::LWWidget(QWidget *parent) : QWidget(parent), m_data(NULL)
     m_instr = INSTR_NONE;
 
     m_plot = new LWPlot(this);
-    m_plot->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
-
     setStandardColorMap(false, false);
 
     m_controls = new LWControls(this);
-    m_controls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
-    QFrame *verticalLine = new QFrame(this);
-    verticalLine->setFrameStyle(QFrame::VLine);
-    verticalLine->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    QSplitter *splitter = new QSplitter(this);
+    splitter->addWidget(m_plot);
+    splitter->addWidget(m_controls);
 
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->addWidget(m_plot, 0, Qt::AlignLeft);
-    layout->addWidget(verticalLine);
-    layout->addWidget(m_controls);
+    layout->addWidget(splitter);
     this->setLayout(layout);
 }
 
@@ -81,18 +76,17 @@ void LWWidget::unload()
 void LWWidget::adjustAspect() {
 
     if (isKeepAspect()) {
-
         int nwidth;
         double aspect(1.0);
         // approximate the width of the axes and colorbar and keep
-        // widget aspect linked to the data ascpet
+        // widget aspect linked to the data aspect
         if (m_data && m_data->width() >1 && m_data->height()>1 ) {
             aspect = double(m_data->width()) / double(m_data->height());
         }
         else {
             if (m_instr == INSTR_LAUE) {
-            // default aspect
-                 aspect = 2000./1598.;
+                // default aspect
+                aspect = 2000./1598.;
             }
         }
 
@@ -305,6 +299,7 @@ void LWWidget::setKeepAspect(bool val)
     if (m_plot->getZoomer()) {
         m_plot->getZoomer()->setKeepAspect(val);
     }
+    adjustAspect();
 }
 
 bool LWWidget::isKeepAspect() const

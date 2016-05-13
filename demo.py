@@ -49,7 +49,6 @@ class MainWindow(QMainWindow):
         loadUi('demo.ui', self)
 
         self.livewidget = LWWidget(self)
-        self.livewidget.setKeepAspect(True)
         # self.livewidget.setControlsVisible(False)
         self.livewidget.setControls(ShowGrid | Logscale | Grayscale | Filelist |
                                     Normalize | Darkfield | Despeckle |

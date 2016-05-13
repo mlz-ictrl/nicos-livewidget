@@ -30,6 +30,7 @@
 #include <QLayout>
 #include <QPushButton>
 #include <QSlider>
+#include <QSplitter>
 #include <QSpinBox>
 #include <QComboBox>
 #include <QDir>
