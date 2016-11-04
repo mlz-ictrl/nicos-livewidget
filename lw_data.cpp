@@ -464,10 +464,12 @@ bool LWData::_readTiff(const char* filename) {
         m_depth = 1;
         TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bpp);
         TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
-        if (bpp == 16) {
-           itype = "<u2";
+        if (bpp == 32) {
+            itype = "<u4";
+        } else if (bpp == 16) {
+            itype = "<u2";
         } else if (bpp == 8 ) {
-           itype = "<u1";
+            itype = "<u1";
         }
         linesize = TIFFScanlineSize(tif);
         data = new char[linesize * m_height]();
