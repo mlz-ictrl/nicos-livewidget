@@ -3,6 +3,8 @@ import sys
 import platform
 from os import path
 from distutils.core import setup, Extension
+from distutils.command.config import config as CommandConfig
+from distutils.dist import Distribution
 
 from sipdistutils import build_ext as sip_build_ext
 from gitversion import get_git_version
@@ -102,6 +104,17 @@ extra_lib_dirs.append(qt_lib_dir)
 sources = [cppfile for cppfile in os.listdir('.')
            if cppfile.startswith('lw_') and cppfile.endswith('.cpp')
            and cppfile != 'lw_main.cpp']
+
+conf = CommandConfig(Distribution())
+
+devfits = conf.check_header('fitsio.h', extra_include_dirs)
+devtiff = conf.check_header('tiff.h', extra_include_dirs)
+if not devfits or not devtiff:
+    if not devfits:
+        conf.warn("Please install developer files of the 'fitsio' library.")
+    if not devtiff:
+        conf.warn("Please install developer files of the 'tiff' library.")
+    sys.exit(1)
 
 setup(
     name='nicoslivewidget',
