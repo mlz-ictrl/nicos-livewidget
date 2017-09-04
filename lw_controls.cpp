@@ -25,6 +25,7 @@
 #include <iostream>
 #include <stdio.h>
 
+#include "lw_common.h"
 #include "lw_controls.h"
 #include "lw_widget.h"
 #include "lw_imageproc.h"

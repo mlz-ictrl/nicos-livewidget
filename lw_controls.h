@@ -25,6 +25,8 @@
 #ifndef LW_CONTROLS_H
 #define LW_CONTROLS_H
 
+#include "lw_common.h"
+
 #include <QCheckBox>
 #include <QLabel>
 #include <QLayout>
@@ -46,7 +48,6 @@ class LWProfileWindow;
 #include "lw_widget.h"
 #include "lw_histogram.h"
 #include "lw_profile.h"
-#include "lw_common.h"
 #include "lw_imageproc.h"
 
 class LWControls : public QWidget

@@ -22,6 +22,8 @@
 //
 // *****************************************************************************
 
+#include "lw_common.h"
+
 #include <QFileDialog>
 
 #include "lw_plot.h"

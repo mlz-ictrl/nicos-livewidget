@@ -35,11 +35,12 @@
 #include <fitsio.h>
 #include <tiffio.h>
 
+#include "lw_common.h"
+
 #include <QStringList>
 
 #include "lw_data.h"
 #include "lw_imageproc.h"
-#include "lw_common.h"
 
 #ifdef CLOCKING
 static clock_t clock_start, clock_stop;

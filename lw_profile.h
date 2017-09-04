@@ -24,6 +24,8 @@
 #ifndef LW_PROFILE_H
 #define LW_PROFILE_H
 
+#include "lw_common.h"
+
 #include <QMainWindow>
 
 class LWWidget;

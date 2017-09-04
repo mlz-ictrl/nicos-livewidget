@@ -26,6 +26,8 @@
 #ifndef LW_PLOT_H
 #define LW_PLOT_H
 
+#include "lw_common.h"
+
 #include <QPrinter>
 #include <QPrintDialog>
 

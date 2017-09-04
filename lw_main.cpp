@@ -24,6 +24,8 @@
 
 // Demo application, currently for testing purposes only.
 
+#include "lw_common.h"
+
 #include <QApplication>
 #include <string.h>
 #include <stdio.h>

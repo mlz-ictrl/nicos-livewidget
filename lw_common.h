@@ -24,6 +24,9 @@
 #ifndef LW_COMMON_H
 #define LW_COMMON_H
 
+#include <sip.h>
+#include "qwt_plot.h"
+
 enum LWFiletype {
     TYPE_NONE               = 0,
     TYPE_CASCADE            = 1,
