@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 from os import path
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from distutils.command.config import config as CommandConfig
 from distutils.dist import Distribution
 
