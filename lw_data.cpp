@@ -480,7 +480,9 @@ bool LWData::_readTiff(const char* filename) {
         }
 
         for (size_t i = 0; i < m_height; i++) {
-               TIFFReadScanline(tif, &data[i * linesize], i, 0);
+           // invert vertical direction to account for different origin
+           // (lower right here, upper right in images)
+           TIFFReadScanline(tif, &data[(m_height - 1 - i) * linesize], i, 0);
         }
 
         TIFFClose(tif);
